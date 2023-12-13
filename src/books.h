@@ -8,9 +8,6 @@
 #include <unordered_map>
 #include <map>
 #include <cstring>
-#include "accounts.h"
-
-class ID;
 
 using std::cout;
 using std::string;

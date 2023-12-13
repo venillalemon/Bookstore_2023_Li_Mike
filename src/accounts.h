@@ -8,7 +8,6 @@
 #include <map>
 #include <cstring>
 #include <stack>
-#include "books.h"
 
 using std::cout;
 using std::string;
@@ -49,8 +48,6 @@ public:
   }
 
 };
-
-extern stack<pair<ID, ISBN>> login_list;
 
 class Account {
 
@@ -272,13 +269,6 @@ public:
     AccountNode tmp;
     read_main(tmp, (*it).second);
     return tmp.find(id);
-  }
-
-
-  Account curUser() {
-    if (login_list.empty()) return {};
-    ID i = login_list.top().first;
-    return user(i);
   }
 
   //find the first node that > the given key, then insert the given key before it
