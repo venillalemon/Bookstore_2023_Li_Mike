@@ -39,6 +39,11 @@ int main() {
       as.print();
     } else if (op == "quit") {
       break;
+    } else if (op=="find") {
+      cin>>s;
+      ID id(s);
+      auto tmp=as.user(id);
+      cout<<tmp.user_id.id<<" "<<tmp.password<<" "<<tmp.user_name<<" "<<tmp.privilege<<'\n';
     }
   }
   return 0;

@@ -1,5 +1,6 @@
-#ifndef BOOKSTORE_2023_LI_MIKE_ACCOUNTS_H
-#define BOOKSTORE_2023_LI_MIKE_ACCOUNTS_H
+#ifndef _ACCOUNTS_H
+#define _ACCOUNTS_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -19,9 +20,9 @@ using std::unordered_map;
 using std::map;
 using std::pair;
 
-const int block_len = 250; // length of block
 
-class AccountSys;
+
+const int block_len = 250; // length of block
 
 class ID {
 public:
@@ -49,16 +50,16 @@ public:
 
 };
 
+extern stack<pair<ID, ISBN>> login_list;
+
 class Account {
 
 public:
 
   ID user_id;
-  char password[35];
-  char user_name[35];
-  int privilege;
-
-  friend class AccountSys;
+  char password[35]{};
+  char user_name[35]{};
+  int privilege{};
 
   Account()=default;
 
@@ -71,16 +72,17 @@ public:
 
 };
 
-class Node {
+class AccountNode {
+
 public:
   ID first = ID();
   int size = 0;
   int pos = 0;
   Account data[block_len];
 
-  Node() = default;
+  AccountNode() = default;
 
-  Node(ID _first, int _pos) {
+  AccountNode(ID _first, int _pos) {
     first = _first;
     pos = _pos;
     size = 0;
@@ -154,7 +156,7 @@ public:
   //main: Account; aux: map
   map<ID, int> list; //map the ID to the pos in main
   //read from aux
-  stack<pair<ID, books>> login_list;
+
   int lengthofnodes = 0;
   int lengthoflist = 0;
   // read from aux
@@ -162,7 +164,7 @@ public:
   //main: account data
 
 
-  AccountSys(const string &FN = "") {
+  explicit AccountSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
     file_main.open(main_name, std::ios::in);
     file_aux.open(main_name + "_aux", std::ios::in);
@@ -174,12 +176,12 @@ public:
       ID st(s), ed(e),rt(r);
       list.insert(pair<ID, int>(st, 1));
       list.insert(pair<ID, int>(ed, 2));
-      Node head(st, 1), tail(ed, 2);
+      AccountNode head(st, 1), tail(ed, 2);
       append_main(head);
       append_main(tail);
       // root account for manager
       list.insert(pair<ID, int>(rt, 3));
-      Node first(rt,3);
+      AccountNode first(rt,3);
       first.data[0]=Account{rt,"sjtu","root",7};
       first.size=1;
       append_main(first);
@@ -222,42 +224,42 @@ public:
     file_aux.close();
   }
 
-  void append_main(Node &t) {
+  void append_main(AccountNode &t) {
     file_main.open(main_name, std::ofstream::app);
-    file_main.write(reinterpret_cast<char *>(&t), sizeof(Node));
+    file_main.write(reinterpret_cast<char *>(&t), sizeof(AccountNode));
     file_main.close();
     ++lengthofnodes;
     ++lengthoflist;
   }
 
   //main[pos]=t, 1-based
-  void write_main(Node &t, const int pos) {
+  void write_main(AccountNode &t, const int pos) {
     if (pos > lengthofnodes) return;
     file_main.open(main_name, std::ofstream::out | std::ifstream::in);
-    file_main.seekp((pos - 1) * sizeof(Node));
-    file_main.write(reinterpret_cast<char *> (&t), sizeof(Node));
+    file_main.seekp((pos - 1) * sizeof(AccountNode));
+    file_main.write(reinterpret_cast<char *> (&t), sizeof(AccountNode));
     file_main.close();
   }
 
   //t=main[pos],1-based
-  void read_main(Node &t, const int pos) {
+  void read_main(AccountNode &t, const int pos) {
     if (pos > lengthofnodes) return;
     file_main.open(main_name, std::ifstream::in);
-    file_main.seekg((pos - 1) * sizeof(Node));
-    file_main.read(reinterpret_cast<char *> (&t), sizeof(Node));
+    file_main.seekg((pos - 1) * sizeof(AccountNode));
+    file_main.read(reinterpret_cast<char *> (&t), sizeof(AccountNode));
     file_main.close();
   }
 
   void print() {
     cout << "[lengthofnodes=" << lengthofnodes << ", lengthoflist=" << lengthoflist << "]\n";
-    Node n;
+    AccountNode n;
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {
       cout << i.first.id << " " << i.second << '\n';
     }
     for (auto i: list) {
-      file_main.seekg((i.second - 1) * sizeof(Node));
-      file_main.read(reinterpret_cast<char *> (&n), sizeof(Node));
+      file_main.seekg((i.second - 1) * sizeof(AccountNode));
+      file_main.read(reinterpret_cast<char *> (&n), sizeof(AccountNode));
       n.print();
     }
     file_main.close();
@@ -266,7 +268,8 @@ public:
   // input id return account
   Account user(const ID &id) {
     auto it = list.upper_bound(id);
-    Node tmp;
+    it--;
+    AccountNode tmp;
     read_main(tmp, (*it).second);
     return tmp.find(id);
   }
@@ -290,21 +293,26 @@ public:
         return;
       }
       if (strcmp(i.password, password) == 0)
-        login_list.emplace(id, books());
+        login_list.emplace(id, ISBN());
+      else cout<<"wrong password\n";
     } else {
       Account i = user(id);
       if (!(i.user_id == id)) {
         cout << "account not found to log in\n";
         return;
       }
-      login_list.emplace(id, books());
+      login_list.emplace(id, ISBN());
+    }
+    if(!login_list.empty()) {
+      auto tmp = login_list.top();
+      cout << tmp.first.id << " " << tmp.second.id << '\n';
     }
   }
 
-  pair<ID, books> logout() {
+  pair<ID, ISBN> logout() {
     if (login_list.empty()) {
       cout << "no user logged in\n";
-      return pair<ID, books>{};
+      return pair<ID, ISBN>{};
     }
     auto tmp = login_list.top();
     login_list.pop();
@@ -326,7 +334,7 @@ public:
       if (lengthoflist == 2) {
         first_node(ac);
       } else {
-        Node next_node;
+        AccountNode next_node;
         int pos = (*last).second;
         read_main(next_node, pos);
         list.erase(next_node.first);
@@ -338,7 +346,7 @@ public:
         }
       }
     } else {
-      Node next_node;
+      AccountNode next_node;
       read_main(next_node, (*it).second);
       next_node.insert(ac);
       write_main(next_node, (*it).second);
@@ -351,10 +359,10 @@ public:
 
   //divide the node at pos into 2 parts, the other part is at the tail
   void divide_node(int pos) {
-    Node node;
+    AccountNode node;
     read_main(node, pos);
 
-    Node new_node(node.data[node.size / 2].user_id, lengthofnodes + 1);
+    AccountNode new_node(node.data[node.size / 2].user_id, lengthofnodes + 1);
 
     for (int i = node.size / 2; i < node.size; i++) {
       new_node.data[i - node.size / 2] = node.data[i];
@@ -366,9 +374,9 @@ public:
     append_main(new_node);
   }
 
-  //insert the Node before the Node at pos
+  //insert the AccountNode before the AccountNode at pos
   void first_node(const Account &ac) {
-    Node new_node(ac.user_id, lengthofnodes + 1);
+    AccountNode new_node(ac.user_id, lengthofnodes + 1);
     new_node.size = 1;
     list.insert(pair<ID, int>(ac.user_id, lengthofnodes + 1));
     append_main(new_node);
@@ -377,7 +385,7 @@ public:
   void remove_account(const ID &id) {
     auto del = list.upper_bound(id);
     del--;
-    Node node;
+    AccountNode node;
     int pos = (*del).second;
     if (pos != 1 && pos != 2) {
       read_main(node, pos);
@@ -391,6 +399,15 @@ public:
     }
   }
 
+  void select (const ISBN &isbn) {
+    auto tmp=login_list.top();
+    login_list.pop();
+    tmp.second=isbn;
+    login_list.push(tmp);
+    tmp=login_list.top();
+    cout<<tmp.first.id<<" "<<tmp.second.id<<'\n';
+  }
+
 };
 
-#endif //BOOKSTORE_2023_LI_MIKE_ACCOUNTS_H
+#endif

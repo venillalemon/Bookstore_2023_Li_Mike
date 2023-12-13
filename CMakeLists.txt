@@ -4,9 +4,10 @@ project(code)
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(src)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 add_executable(code
         src/accounts.h
         src/books.h
         main.cpp
-        src/statements.h)
+        src/statements.h
+        src/loginstate.h)
