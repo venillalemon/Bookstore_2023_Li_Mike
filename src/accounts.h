@@ -20,7 +20,6 @@ using std::map;
 using std::pair;
 
 const int block_len = 250; // length of block
-const int block_num = 250; // number of blocks
 
 class AccountSys;
 
@@ -61,6 +60,15 @@ public:
 
   friend class AccountSys;
 
+  Account()=default;
+
+  Account(ID &id,char p[35],char u[35],int pr) {
+    user_id=id;
+    strcpy(password,p);
+    strcpy(user_name,u);
+    privilege=pr;
+  }
+
 };
 
 class Node {
@@ -99,33 +107,41 @@ public:
         inserted = true;
         break;
       }
+      if (ac.user_id == data[i - 1].user_id) {
+        cout << "account already exists\n";
+        return;
+      }
     }
     if (!inserted) data[0] = ac;
     size++;
     first = data[0].user_id;
   }
 
-  void remove(Account ac) {
+  void remove(const ID &id) {
     bool found = false;
     for (int i = 0; i < size; i++) {
-      if (!found && data[i].user_id == ac.user_id) found = true;
+      if (!found && data[i].user_id == id) found = true;
       if (found) data[i] = data[i + 1];
     }
     if (found) size--;
+    else cout << "account does not exist\n";
     first = data[0].user_id;
   }
 
   Account find(const ID &id) {
-    int l=0,r=size;
+    int l = 0, r = size;
     int mid;
-    while(l+1<r) {
-      mid=(l+r)>>1;
-      if(id<data[mid].user_id) {
-        r=mid;
-      } else l=mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (id < data[mid].user_id) {
+        r = mid;
+      } else l = mid;
     }
-    if(data[l].user_id==id) return data[l];
-    else return {};
+    if (data[l].user_id == id) return data[l];
+    else {
+      cout << "not found\n";
+      return {};
+    }
   }
 
 };
@@ -140,26 +156,33 @@ public:
   //read from aux
   stack<pair<ID, books>> login_list;
   int lengthofnodes = 0;
-  int lengthoflist=0;
+  int lengthoflist = 0;
   // read from aux
   //aux: first--lengthofnodes; second--lengthoflist
   //main: account data
 
 
   AccountSys(const string &FN = "") {
-    if (FN != "") main_name = FN;
+    if (!FN.empty()) main_name = FN;
     file_main.open(main_name, std::ios::in);
     file_aux.open(main_name + "_aux", std::ios::in);
     if (!file_main.is_open()) {
       file_main.close();
       file_aux.close();
       init_main();
-      char s[35]="",e[35]="zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
-      ID st(s),ed(e);
-      list.insert(pair<ID,int>(st,1));
-      list.insert(pair<ID,int>(ed,2));
-      Node head(st,1),tail(ed,2);
-      append_main(head);append_main(tail);
+      char s[35] = "", e[35] = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",r[35]="root";
+      ID st(s), ed(e),rt(r);
+      list.insert(pair<ID, int>(st, 1));
+      list.insert(pair<ID, int>(ed, 2));
+      Node head(st, 1), tail(ed, 2);
+      append_main(head);
+      append_main(tail);
+      // root account for manager
+      list.insert(pair<ID, int>(rt, 3));
+      Node first(rt,3);
+      first.data[0]=Account{rt,"sjtu","root",7};
+      first.size=1;
+      append_main(first);
     } else {
       file_main.close();
       file_aux.close();
@@ -175,7 +198,8 @@ public:
     file_main.open(main_name, fstream::out | fstream::binary);
     file_main.close();
   }
-  void write_aux(){
+
+  void write_aux() {
     file_aux.open(main_name + "_aux", fstream::out | fstream::binary);
     file_aux.write(reinterpret_cast<char *>(&lengthofnodes), sizeof(int));
     file_aux.write(reinterpret_cast<char *>(&lengthoflist), sizeof(int));
@@ -184,6 +208,7 @@ public:
     }
     file_aux.close();
   }
+
   void read_aux() {
     list.clear();
     pair<ID, int> tmp{};
@@ -206,15 +231,16 @@ public:
   }
 
   //main[pos]=t, 1-based
-  void write_main(Node &t,const int pos) {
+  void write_main(Node &t, const int pos) {
     if (pos > lengthofnodes) return;
     file_main.open(main_name, std::ofstream::out | std::ifstream::in);
     file_main.seekp((pos - 1) * sizeof(Node));
     file_main.write(reinterpret_cast<char *> (&t), sizeof(Node));
     file_main.close();
   }
+
   //t=main[pos],1-based
-  void read_main(Node &t,const int pos) {
+  void read_main(Node &t, const int pos) {
     if (pos > lengthofnodes) return;
     file_main.open(main_name, std::ifstream::in);
     file_main.seekg((pos - 1) * sizeof(Node));
@@ -237,62 +263,132 @@ public:
     file_main.close();
   }
 
+  // input id return account
+  Account user(const ID &id) {
+    auto it = list.upper_bound(id);
+    Node tmp;
+    read_main(tmp, (*it).second);
+    return tmp.find(id);
+  }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  //the current user
   Account curUser() {
-    return read_data(data[login_list.top().first]);
+    if (login_list.empty()) return {};
+    ID i = login_list.top().first;
+    return user(i);
   }
 
   void login(const ID &id, const char password[35] = nullptr) {
     if (curUser().privilege != 7) {
-      if (password == nullptr) return;
-      auto it = data.find(id);
-      if (it == data.end()) return;
-      if (strcmp(read_data(it->second).password, password) != 0)
-        return login_list.emplace(id, books());
+      if (password == nullptr) {
+        cout << "require password\n";
+        return;
+      }
+      Account i = user(id);
+      if (!(i.user_id == id)) {
+        cout << "account not found to log in\n";
+        return;
+      }
+      if (strcmp(i.password, password) == 0)
+        login_list.emplace(id, books());
     } else {
-      auto it = data.find(id);
-      if (it == data.end()) return;
-      return login_list.emplace(id, books());
+      Account i = user(id);
+      if (!(i.user_id == id)) {
+        cout << "account not found to log in\n";
+        return;
+      }
+      login_list.emplace(id, books());
     }
   }
 
   pair<ID, books> logout() {
-    if (login_list.empty()) return pair<ID, books>{};
+    if (login_list.empty()) {
+      cout << "no user logged in\n";
+      return pair<ID, books>{};
+    }
     auto tmp = login_list.top();
     login_list.pop();
     return tmp;
+  }
+
+  //find the first node that > the given key, then insert the given key before it
+  void insert_account(const Account &ac) {
+    Account tmp = user(ac.user_id);
+    if (tmp.user_id == ac.user_id) {
+      cout << "id exists\n";
+      return;
+    }
+    auto it = list.lower_bound(ac.user_id);
+    auto last = it;
+    it--;
+
+    if (it == list.begin()) {
+      if (lengthoflist == 2) {
+        first_node(ac);
+      } else {
+        Node next_node;
+        int pos = (*last).second;
+        read_main(next_node, pos);
+        list.erase(next_node.first);
+        next_node.insert(ac);
+        write_main(next_node, pos);
+        list.insert(pair<ID, int>(next_node.first, pos));
+        if (next_node.size >= block_len - 20) {
+          divide_node(pos);
+        }
+      }
+    } else {
+      Node next_node;
+      read_main(next_node, (*it).second);
+      next_node.insert(ac);
+      write_main(next_node, (*it).second);
+      if (next_node.size >= block_len - 20) {
+        divide_node((*it).second);
+      }
+    }
+    //print();
+  }
+
+  //divide the node at pos into 2 parts, the other part is at the tail
+  void divide_node(int pos) {
+    Node node;
+    read_main(node, pos);
+
+    Node new_node(node.data[node.size / 2].user_id, lengthofnodes + 1);
+
+    for (int i = node.size / 2; i < node.size; i++) {
+      new_node.data[i - node.size / 2] = node.data[i];
+      new_node.size++;
+    }
+    node.size /= 2;
+    list.insert(pair<ID, int>(new_node.first, lengthofnodes + 1));
+    write_main(node, pos);
+    append_main(new_node);
+  }
+
+  //insert the Node before the Node at pos
+  void first_node(const Account &ac) {
+    Node new_node(ac.user_id, lengthofnodes + 1);
+    new_node.size = 1;
+    list.insert(pair<ID, int>(ac.user_id, lengthofnodes + 1));
+    append_main(new_node);
+  }
+
+  void remove_account(const ID &id) {
+    auto del = list.upper_bound(id);
+    del--;
+    Node node;
+    int pos = (*del).second;
+    if (pos != 1 && pos != 2) {
+      read_main(node, pos);
+      list.erase(node.first);
+      node.remove(id);
+      write_main(node, pos);
+      if (node.size != 0) list.insert(pair<ID, int>(node.first, node.pos));
+      else {
+        lengthoflist--;
+      }
+    }
   }
 
 };

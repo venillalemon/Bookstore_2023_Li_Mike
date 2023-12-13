@@ -8,4 +8,5 @@ include_directories(src)
 add_executable(code
         src/accounts.h
         src/books.h
-        main.cpp)
+        main.cpp
+        src/statements.h)
