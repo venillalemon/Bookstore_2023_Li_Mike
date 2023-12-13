@@ -54,15 +54,15 @@ pair<ID, ISBN> logout() {
   return tmp;
 }
 
-void select (const ISBN &isbn) {
-  auto tmp=login_list.top();
+void select(const ISBN &isbn) {
+  auto tmp = login_list.top();
   login_list.pop();
-  tmp.second=isbn;
+  tmp.second = isbn;
   login_list.push(tmp);
-  tmp=login_list.top();
-  cout<<tmp.first.id<<" selects "<<tmp.second.id<<'\n';
-  Book b=bs.bookinfo(isbn);
-  if(!(b.isbn==isbn)) {
+  tmp = login_list.top();
+  cout << tmp.first.id << " selects " << tmp.second.id << '\n';
+  Book b = bs.bookinfo(isbn);
+  if (!(b.isbn == isbn)) {
     bs.insert_book(Book(isbn));
   }
 }

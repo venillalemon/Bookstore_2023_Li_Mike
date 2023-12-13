@@ -21,7 +21,6 @@ using std::map;
 using std::pair;
 
 
-
 const int block_len = 250; // length of block
 
 class ID {
@@ -59,13 +58,13 @@ public:
   char user_name[35]{};
   int privilege{};
 
-  Account()=default;
+  Account() = default;
 
-  Account(ID &id,char p[35],char u[35],int pr) {
-    user_id=id;
-    strcpy(password,p);
-    strcpy(user_name,u);
-    privilege=pr;
+  Account(ID &id, char p[35], char u[35], int pr) {
+    user_id = id;
+    strcpy(password, p);
+    strcpy(user_name, u);
+    privilege = pr;
   }
 
 };
@@ -170,8 +169,8 @@ public:
       file_main.close();
       file_aux.close();
       init_main();
-      char s[35] = "", e[35] = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",r[35]="root";
-      ID st(s), ed(e),rt(r);
+      char s[35] = "", e[35] = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", r[35] = "root";
+      ID st(s), ed(e), rt(r);
       list.insert(pair<ID, int>(st, 1));
       list.insert(pair<ID, int>(ed, 2));
       AccountNode head(st, 1), tail(ed, 2);
@@ -179,9 +178,9 @@ public:
       append_main(tail);
       // root account for manager
       list.insert(pair<ID, int>(rt, 3));
-      AccountNode first(rt,3);
-      first.data[0]=Account{rt,"sjtu","root",7};
-      first.size=1;
+      AccountNode first(rt, 3);
+      first.data[0] = Account{rt, "sjtu", "root", 7};
+      first.size = 1;
       append_main(first);
     } else {
       file_main.close();
@@ -339,7 +338,6 @@ public:
       }
     }
   }
-
 
 
 };

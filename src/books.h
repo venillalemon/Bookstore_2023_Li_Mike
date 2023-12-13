@@ -62,7 +62,7 @@ public:
   Book() = default;
 
   Book(const ISBN &_isbn) {
-    isbn=_isbn;
+    isbn = _isbn;
   }
 
   Book(const ISBN &_isbn, char n[70], char a[70], char k[70], int p) {
@@ -98,7 +98,7 @@ public:
       cout << "   " << data[i].isbn.id << " " << data[i].name;
       cout << " " << data[i].author << " ";
       cout << data[i].key_word << " ";
-      cout<<data[i].price<<" "<<data[i].storage<<'\n';
+      cout << data[i].price << " " << data[i].storage << '\n';
     }
   }
 
@@ -289,7 +289,7 @@ public:
     return tmp.find(isbn);
   }
 
-  void buy(const ISBN &isbn,int quantity) {
+  void buy(const ISBN &isbn, int quantity) {
     auto it = list.upper_bound(isbn);
     it--;
     BookNode tmp;
@@ -375,7 +375,7 @@ public:
         lengthoflist--;
       }
     } else {
-      error("not found book to remove")
+      error("not found book to remove");
     }
   }
 
