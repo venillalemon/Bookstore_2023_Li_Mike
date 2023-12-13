@@ -9,5 +9,6 @@ add_executable(code
         src/accounts.h
         src/books.h
         main.cpp
-        src/statements.h
-        src/loginstate.h)
+        src/loginstate.h
+        src/finance.h
+        src/error.h)

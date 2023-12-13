@@ -37,6 +37,7 @@ int main() {
       as.remove_account(id);
     } else if (op == "print") {
       as.print();
+      bs.print();
     } else if (op == "quit") {
       break;
     } else if (op=="find") {

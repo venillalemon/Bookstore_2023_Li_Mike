@@ -8,6 +8,7 @@
 #include <map>
 #include <cstring>
 #include <stack>
+#include "error.h"
 
 using std::cout;
 using std::string;
@@ -107,7 +108,7 @@ public:
         break;
       }
       if (ac.user_id == data[i - 1].user_id) {
-        cout << "account already exists\n";
+        error("account already exists\n");
         return;
       }
     }
@@ -123,7 +124,7 @@ public:
       if (found) data[i] = data[i + 1];
     }
     if (found) size--;
-    else cout << "account does not exist\n";
+    else error("account does not exist\n");
     first = data[0].user_id;
   }
 
@@ -138,7 +139,7 @@ public:
     }
     if (data[l].user_id == id) return data[l];
     else {
-      cout << "not found\n";
+      error("not found\n");
       return {};
     }
   }
@@ -275,7 +276,7 @@ public:
   void insert_account(const Account &ac) {
     Account tmp = user(ac.user_id);
     if (tmp.user_id == ac.user_id) {
-      cout << "id exists\n";
+      error("id exists\n");
       return;
     }
     auto it = list.lower_bound(ac.user_id);
@@ -283,19 +284,15 @@ public:
     it--;
 
     if (it == list.begin()) {
-      if (lengthoflist == 2) {
-        first_node(ac);
-      } else {
-        AccountNode next_node;
-        int pos = (*last).second;
-        read_main(next_node, pos);
-        list.erase(next_node.first);
-        next_node.insert(ac);
-        write_main(next_node, pos);
-        list.insert(pair<ID, int>(next_node.first, pos));
-        if (next_node.size >= block_len - 20) {
-          divide_node(pos);
-        }
+      AccountNode next_node;
+      int pos = (*last).second;
+      read_main(next_node, pos);
+      list.erase(next_node.first);
+      next_node.insert(ac);
+      write_main(next_node, pos);
+      list.insert(pair<ID, int>(next_node.first, pos));
+      if (next_node.size >= block_len - 20) {
+        divide_node(pos);
       }
     } else {
       AccountNode next_node;
@@ -323,14 +320,6 @@ public:
     node.size /= 2;
     list.insert(pair<ID, int>(new_node.first, lengthofnodes + 1));
     write_main(node, pos);
-    append_main(new_node);
-  }
-
-  //insert the AccountNode before the AccountNode at pos
-  void first_node(const Account &ac) {
-    AccountNode new_node(ac.user_id, lengthofnodes + 1);
-    new_node.size = 1;
-    list.insert(pair<ID, int>(ac.user_id, lengthofnodes + 1));
     append_main(new_node);
   }
 

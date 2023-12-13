@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <map>
 #include <cstring>
+#include "error.h"
 
 using std::cout;
 using std::string;
@@ -60,7 +61,11 @@ public:
 public:
   Book() = default;
 
-  Book(ISBN &_isbn, char n[70], char a[70], char k[70], int p) {
+  Book(const ISBN &_isbn) {
+    isbn=_isbn;
+  }
+
+  Book(const ISBN &_isbn, char n[70], char a[70], char k[70], int p) {
     isbn = _isbn;
     strcpy(name, n);
     strcpy(author, a);
@@ -92,7 +97,8 @@ public:
     for (int i = 0; i < size; ++i) {
       cout << "   " << data[i].isbn.id << " " << data[i].name;
       cout << " " << data[i].author << " ";
-      cout << data[i].key_word << '\n';
+      cout << data[i].key_word << " ";
+      cout<<data[i].price<<" "<<data[i].storage<<'\n';
     }
   }
 
@@ -106,12 +112,23 @@ public:
         break;
       }
       if (bo.isbn == data[i - 1].isbn) {
-        cout << "account already exists\n";
+        error("insert: book already exists\n");
         return;
       }
     }
     if (!inserted) data[0] = bo;
     size++;
+    first = data[0].isbn;
+  }
+
+  void remove(const ISBN &id) {
+    bool found = false;
+    for (int i = 0; i < size; i++) {
+      if (!found && data[i].isbn == id) found = true;
+      if (found) data[i] = data[i + 1];
+    }
+    if (found) size--;
+    else error("remove: book does not exist\n");
     first = data[0].isbn;
   }
 
@@ -126,7 +143,7 @@ public:
     }
     if (data[l].isbn == id) return data[l];
     else {
-      cout << "not found\n";
+      error("not found book\n");
       return {};
     }
   }
@@ -141,12 +158,12 @@ public:
       } else l = mid;
     }
     if (!(data[l].isbn == id)) {
-      cout << "not found to modify\n";
+      error("not found book to modify\n");
       return;
     } else {
       if (data[l].storage + change_storage >= 0) data[l].storage += change_storage;
       else {
-        cout << "not enough to buy\n";
+        error("not enough to buy\n");
         return;
       }
     }
@@ -272,13 +289,94 @@ public:
     return tmp.find(isbn);
   }
 
-  void buy(int quantity) {
-    auto it = list.upper_bound(login_list.top().second);
+  void buy(const ISBN &isbn,int quantity) {
+    auto it = list.upper_bound(isbn);
     it--;
     BookNode tmp;
     read_main(tmp, (*it).second);
     tmp.modify(login_list.top().second, -quantity);
     write_main(tmp, (*it).second);
+  }
+
+  void insert_book(const Book &bo) {
+    Book tmp = bookinfo(bo.isbn);
+    if (tmp.isbn == bo.isbn) {
+      error("id exists\n");
+      return;
+    }
+    auto it = list.lower_bound(bo.isbn);
+    auto last = it;
+    it--;
+
+    if (it == list.begin()) {
+      if (lengthoflist == 2) {
+        first_node(bo);
+      } else {
+        BookNode next_node;
+        int pos = (*last).second;
+        read_main(next_node, pos);
+        list.erase(next_node.first);
+        next_node.insert(bo);
+        write_main(next_node, pos);
+        list.insert(pair<ISBN, int>(next_node.first, pos));
+        if (next_node.size >= block_len - 20) {
+          divide_node(pos);
+        }
+      }
+    } else {
+      BookNode next_node;
+      read_main(next_node, (*it).second);
+      next_node.insert(bo);
+      write_main(next_node, (*it).second);
+      if (next_node.size >= block_len - 20) {
+        divide_node((*it).second);
+      }
+    }
+    //print();
+  }
+
+  //divide the node at pos into 2 parts, the other part is at the tail
+  void divide_node(int pos) {
+    BookNode node;
+    read_main(node, pos);
+
+    BookNode new_node(node.data[node.size / 2].isbn, lengthofnodes + 1);
+
+    for (int i = node.size / 2; i < node.size; i++) {
+      new_node.data[i - node.size / 2] = node.data[i];
+      new_node.size++;
+    }
+    node.size /= 2;
+    list.insert(pair<ISBN, int>(new_node.first, lengthofnodes + 1));
+    write_main(node, pos);
+    append_main(new_node);
+  }
+
+  //insert the AccountNode at the head of the list
+  void first_node(const Book &bo) {
+    BookNode new_node(bo.isbn, lengthofnodes + 1);
+    new_node.size = 1;
+    list.insert(pair<ISBN, int>(bo.isbn, lengthofnodes + 1));
+    append_main(new_node);
+  }
+
+  void remove_book(const ISBN &isbn) {
+    auto del = list.upper_bound(isbn);
+    del--;
+    BookNode node;
+    int pos = (*del).second;
+    if (pos != 1 && pos != 2) {
+      read_main(node, pos);
+      list.erase(node.first);
+      node.remove(isbn);
+      write_main(node, pos);
+      if (node.size != 0) list.insert(pair<ISBN, int>(node.first, node.pos));
+      else {
+        lengthoflist--;
+      }
+    } else {
+      error("not found book to remove")
+    }
   }
 
 };
