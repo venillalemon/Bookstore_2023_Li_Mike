@@ -1,11 +1,11 @@
 #include <iostream>
-#include "accounts.h"
+#include "loginstate.h"
 
 using std::cin;
 using std::string;
 
 int main() {
-  AccountSys as("account");
+
   char s[35];
   char passwd[35];
   char username[35];
@@ -18,9 +18,9 @@ int main() {
     if(op=="su") {
       cin>>s>>passwd;
       ID id(s);
-      as.login(id,passwd);
+      login(id,passwd);
     } else if (op=="logout") {
-      as.logout();
+      logout();
     } else if (op=="register") {
       cin>>s>>passwd>>username;
       ID id(s);

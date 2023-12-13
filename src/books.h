@@ -10,6 +10,7 @@
 #include <cstring>
 #include "accounts.h"
 
+class ID;
 
 using std::cout;
 using std::string;
@@ -48,6 +49,8 @@ public:
     return (strcmp(id, rhs.id) < 0);
   }
 };
+
+extern stack<pair<ID, ISBN>> login_list;
 
 class Book {
 public:
@@ -270,16 +273,6 @@ public:
     BookNode tmp;
     read_main(tmp, (*it).second);
     return tmp.find(isbn);
-  }
-
-  // quantity<0 the book of isbn is bought; quantity>0 is imported
-  void import(int quantity, int tot_cost) {
-    auto it = list.upper_bound(login_list.top().second);
-    it--;
-    BookNode tmp;
-    read_main(tmp, (*it).second);
-    tmp.modify(login_list.top().second, quantity);
-    write_main(tmp, (*it).second);
   }
 
   void buy(int quantity) {
