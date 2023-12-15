@@ -3,17 +3,26 @@
 
 #include "accounts.h"
 #include "books.h"
+#include "finance.h"
 #include "error.h"
 
 stack<pair<ID, ISBN>> login_list;
 AccountSys as("account");
 BookSys bs("book");
+FinanceSys fs("finance");
 
 //get the current user
 Account curUser() {
   if (login_list.empty()) return {};
   ID i = login_list.top().first;
   return as.user(i);
+}
+
+Book curBook() {
+  if (login_list.empty()) return {};
+  ISBN i = login_list.top().second;
+  if (i == ISBN()) error("import/buy: no book selected");
+  return bs.bookinfo(i);
 }
 
 void login(const ID &id, const char password[35] = nullptr) {
@@ -51,10 +60,35 @@ pair<ID, ISBN> logout() {
   }
   auto tmp = login_list.top();
   login_list.pop();
+  cout << tmp.first.id << " " << tmp.second.id << '\n';
   return tmp;
 }
 
+void resetpasswd(const ID &id, char _new_p[35], char _password[35] = nullptr) {
+  Account tmp = as.user(id);
+  if (!(tmp.user_id == id)) {
+    error("passwd: account does not exist\n");
+    return;
+  }
+
+  if (curUser().privilege == 7) {
+    as.remove_account(id);
+    strcpy(tmp.password, _password);
+    as.insert_account(tmp);
+  } else {
+    if (strcmp(tmp.password, _password) == 0) {
+      as.remove_account(id);
+      strcpy(tmp.password, _password);
+      as.insert_account(tmp);
+    } else {
+      error("passwd: wrong password\n");
+    }
+  }
+
+}
+
 void select(const ISBN &isbn) {
+  if(login_list.empty()) {return;}
   auto tmp = login_list.top();
   login_list.pop();
   tmp.second = isbn;
@@ -67,13 +101,28 @@ void select(const ISBN &isbn) {
   }
 }
 
-void import(int quantity, int tot_cost) {
+void import(int quantity, double tot_cost) {
   auto it = bs.list.upper_bound(login_list.top().second);
   it--;
   BookNode tmp;
   bs.read_main(tmp, (*it).second);
   tmp.modify(login_list.top().second, quantity);
   bs.write_main(tmp, (*it).second);
+
+  FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, tot_cost / quantity, IMPORT};
+  fs.add_his(fh);
+}
+
+void buy(const ISBN &isbn, int quantity) {
+  auto it = bs.list.upper_bound(isbn);
+  it--;
+  BookNode tmp;
+  bs.read_main(tmp, (*it).second);
+  tmp.modify(login_list.top().second, -quantity);
+  bs.write_main(tmp, (*it).second);
+
+  FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, curBook().price, SALE};
+  fs.add_his(fh);
 }
 
 #endif

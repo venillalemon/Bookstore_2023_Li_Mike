@@ -56,7 +56,7 @@ public:
   char name[70]{};
   char author[70]{};
   char key_word[70]{};
-  int price = 0;
+  double price = 0;
   int storage = 0;
 public:
   Book() = default;
@@ -143,7 +143,7 @@ public:
     }
     if (data[l].isbn == id) return data[l];
     else {
-      error("not found book\n");
+      //error("not found book\n");
       return {};
     }
   }
@@ -289,19 +289,10 @@ public:
     return tmp.find(isbn);
   }
 
-  void buy(const ISBN &isbn, int quantity) {
-    auto it = list.upper_bound(isbn);
-    it--;
-    BookNode tmp;
-    read_main(tmp, (*it).second);
-    tmp.modify(login_list.top().second, -quantity);
-    write_main(tmp, (*it).second);
-  }
-
   void insert_book(const Book &bo) {
     Book tmp = bookinfo(bo.isbn);
     if (tmp.isbn == bo.isbn) {
-      error("id exists\n");
+      error("isbn exists\n");
       return;
     }
     auto it = list.lower_bound(bo.isbn);
@@ -310,6 +301,7 @@ public:
 
     if (it == list.begin()) {
       if (lengthoflist == 2) {
+        cout<<"first node\n";
         first_node(bo);
       } else {
         BookNode next_node;
@@ -356,6 +348,7 @@ public:
   void first_node(const Book &bo) {
     BookNode new_node(bo.isbn, lengthofnodes + 1);
     new_node.size = 1;
+    new_node.data[0]=bo;
     list.insert(pair<ISBN, int>(bo.isbn, lengthofnodes + 1));
     append_main(new_node);
   }

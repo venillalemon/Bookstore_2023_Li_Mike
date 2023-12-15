@@ -138,7 +138,7 @@ public:
     }
     if (data[l].user_id == id) return data[l];
     else {
-      error("not found\n");
+      cout<<"not found\n";
       return {};
     }
   }
@@ -338,6 +338,7 @@ public:
       }
     }
   }
+
 
 
 };
