@@ -26,16 +26,15 @@ int main() {
       modify_book(23.5);
       modify_book((BookName&)"maijubaodian");
       modify_book((KeyWord&)"math|physics");
-      as.print();
-      bs.print();
+      print();
       modify_book((ISBN&)"2546");
       select((ISBN&)"1234");
       modify_book((Author&)("lfk"));
       modify_book(23.5);
       modify_book((BookName&)"maicaibaodian");
       modify_book((KeyWord&)"math|chemistry");
-      as.print();
-      bs.print();
+      resetpasswd((ID&)"123","20050114","2005");
+      print();
       bs.find_book((Author&)"lfk");
       bs.find_book((KeyWord&)"physics");
 

@@ -1,5 +1,5 @@
-#ifndef _BOOKS_H
-#define _BOOKS_H
+#ifndef BOOKS_H
+#define BOOKS_H
 #pragma once
 
 #include <iostream>
@@ -94,9 +94,9 @@ public:
     price = p;
   }
 
-  void show() const{
-    cout<<isbn<<'\t'<<name<<'\t'<<author<<'\t';
-    cout<<key_word<<'\t'<<price<<'\t'<<storage<<'\n';
+  void show() const {
+    cout << isbn << '\t' << name << '\t' << author << '\t';
+    cout << key_word << '\t' << price << '\t' << storage << '\n';
   }
 };
 
@@ -360,15 +360,15 @@ public:
     file_main.close();
     cout << "BookName:\n";
     for (auto i: bn) {
-      cout << i.first <<" "<< i.second << '\n';
+      cout << i.first << " " << i.second << '\n';
     }
     cout << "Author:\n";
     for (auto i: au) {
-      cout << i.first <<" "<< i.second << '\n';
+      cout << i.first << " " << i.second << '\n';
     }
     cout << "KeyWord:\n";
     for (auto i: kw) {
-      cout << i.first <<" "<< i.second << '\n';
+      cout << i.first << " " << i.second << '\n';
     }
   }
 
@@ -380,39 +380,39 @@ public:
     return tmp.find(isbn);
   }
 
-  void find_book(const ISBN& isbn) {
+  void find_book(const ISBN &isbn) {
     bookinfo(isbn).show();
   }
 
   void find_book(const BookName &book_name) {
-    multimap<BookName,ISBN>::iterator it;
+    multimap<BookName, ISBN>::iterator it;
     set<ISBN> v;
-    for(it=bn.lower_bound(book_name);it!=bn.upper_bound(book_name);++it){
+    for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
       v.insert(it->second);
     }
-    for(const auto & t : v) {
+    for (const auto &t: v) {
       bookinfo(t).show();
     }
   }
 
   void find_book(const Author &author) {
-    multimap<Author,ISBN>::iterator it;
+    multimap<Author, ISBN>::iterator it;
     set<ISBN> v;
-    for(it=au.lower_bound(author);it!=au.upper_bound(author);++it){
+    for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
       v.insert(it->second);
     }
-    for(const auto & t : v) {
+    for (const auto &t: v) {
       bookinfo(t).show();
     }
   }
 
   void find_book(const KeyWord &key_word) {
-    multimap<KeyWord,ISBN>::iterator it;
+    multimap<KeyWord, ISBN>::iterator it;
     set<ISBN> v;
-    for(it=kw.lower_bound(key_word);it!=kw.upper_bound(key_word);++it){
+    for (it = kw.lower_bound(key_word); it != kw.upper_bound(key_word); ++it) {
       v.insert(it->second);
     }
-    for(const auto & t : v) {
+    for (const auto &t: v) {
       bookinfo(t).show();
     }
   }
@@ -540,7 +540,7 @@ public:
   }
 
   void remove_from_kw(const KeyWord &key_word, const ISBN &isbn) {
-    multimap<KeyWord , ISBN>::iterator it;
+    multimap<KeyWord, ISBN>::iterator it;
     char key_list[70];
     strcpy(key_list, key_word.id);
     char *token = strtok(key_list, "|");
@@ -558,6 +558,5 @@ public:
   }
 
 };
-
 
 #endif
