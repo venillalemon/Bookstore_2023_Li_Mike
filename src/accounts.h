@@ -164,10 +164,8 @@ public:
   explicit AccountSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
     file_main.open(main_name, std::ios::in);
-    file_aux.open(main_name + "_aux", std::ios::in);
     if (!file_main.is_open()) {
       file_main.close();
-      file_aux.close();
       init_main();
       char s[35] = "", e[35] = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", r[35] = "root";
       ID st(s), ed(e), rt(r);
@@ -248,7 +246,7 @@ public:
   }
 
   void print() {
-    cout << "[lengthofnodes=" << lengthofnodes << ", lengthoflist=" << lengthoflist << "]\n";
+    cout << "Accounts: [lengthofnodes=" << lengthofnodes << ", lengthoflist=" << lengthoflist << "]\n";
     AccountNode n;
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {

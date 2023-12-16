@@ -88,7 +88,10 @@ void resetpasswd(const ID &id, char _new_p[35], char _password[35] = nullptr) {
 }
 
 void select(const ISBN &isbn) {
-  if(login_list.empty()) {return;}
+  if (curUser().privilege < 3) {
+    error("low privilege");
+  }
+  if (login_list.empty()) { return; }
   auto tmp = login_list.top();
   login_list.pop();
   tmp.second = isbn;
@@ -124,5 +127,41 @@ void buy(const ISBN &isbn, int quantity) {
   FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, curBook().price, SALE};
   fs.add_his(fh);
 }
+
+void modify_book(const ISBN &isbn) {
+  Book sel = bs.remove_book(curBook().isbn);
+  sel.isbn = isbn;
+  bs.insert_book(sel);
+  auto t = login_list.top();
+  login_list.pop();
+  t.second = isbn;
+  login_list.push(t);
+}
+
+void modify_book(const Author &author) {
+  Book sel = bs.remove_book(curBook().isbn);
+  sel.author = author;
+  bs.insert_book(sel);
+}
+
+void modify_book(const BookName &book_name) {
+  Book sel = bs.remove_book(curBook().isbn);
+  sel.name = book_name;
+  bs.insert_book(sel);
+}
+
+void modify_book(double price_) {
+  Book sel = bs.remove_book(curBook().isbn);
+  sel.price=price_;
+  bs.insert_book(sel);
+}
+
+void modify_book(const KeyWord &key_word_) {
+  Book sel = bs.remove_book(curBook().isbn);
+  sel.key_word=key_word_;
+  bs.insert_book(sel);
+}
+
+
 
 #endif
