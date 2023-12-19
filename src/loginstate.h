@@ -6,10 +6,10 @@
 #include "finance.h"
 #include "error.h"
 
-stack<pair<ID, ISBN>> login_list;
-AccountSys as("account");
-BookSys bs("book");
-FinanceSys fs("finance");
+
+extern AccountSys as;
+extern BookSys bs;
+extern FinanceSys fs;
 
 //get the current user
 Account curUser() {
@@ -25,16 +25,34 @@ Book curBook() {
   return bs.bookinfo(i);
 }
 
-void print(){
-  cout<<"==============as\n";
+int curPrivilege() {
+  if (login_list.empty()) return 0;
+  return curUser().privilege;
+}
+
+void print() {
+  cout << "==============as\n";
   as.print();
-  cout<<"==============bs\n";
+  cout << "==============bs\n";
   bs.print();
-  cout<<"==============end\n";
+  cout << "==============fs\n";
+  fs.print();
+  cout << "==============end\n";
+}
+
+void reg(const ID &id, const char password[35] ,const char username[35]){
+  as.insert_account(Account(id, password, username, 1));
+}
+
+void useradd(const ID &id, const char password[35], const char username[35], int privilege) {
+  if (curPrivilege() <privilege||curPrivilege()<3) {
+    error("low privilege");
+  }
+  as.insert_account(Account(id, password, username, privilege));
 }
 
 void login(const ID &id, const char password[35] = nullptr) {
-  if (curUser().privilege != 7) {
+  if (curPrivilege() != 7) {
     if (password == nullptr) {
       error("require password");
     }
@@ -42,9 +60,11 @@ void login(const ID &id, const char password[35] = nullptr) {
     if (!(i.user_id == id)) {
       error("account not found to log in");
     }
-    if (strcmp(i.password, password) == 0)
-      login_list.emplace(id, ISBN());
-    else error("wrong password");
+    if (strcmp(i.password, password) == 0) {
+      pair<ID, ISBN> m{};
+      m.first = id;
+      login_list.push(m);
+    } else error("wrong password");
   } else {
     Account i = as.user(id);
     if (!(i.user_id == id)) {
@@ -87,7 +107,7 @@ void resetpasswd(const ID &id, char _new_p[35], char _password[35] = nullptr) {
 }
 
 void select(const ISBN &isbn) {
-  if (curUser().privilege < 3) {
+  if (curPrivilege() < 3) {
     error("low privilege");
   }
   if (login_list.empty()) { return; }
@@ -104,7 +124,7 @@ void select(const ISBN &isbn) {
 }
 
 void import(int quantity, double tot_cost) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   auto it = bs.list.upper_bound(curBook().isbn);
   // throw an error when no book is selected
   it--;
@@ -118,6 +138,7 @@ void import(int quantity, double tot_cost) {
 }
 
 void buy(const ISBN &isbn, int quantity) {
+  if (curPrivilege() < 1) error("low privilege\n");
   auto it = bs.list.upper_bound(isbn);
   it--;
   BookNode tmp;
@@ -125,12 +146,14 @@ void buy(const ISBN &isbn, int quantity) {
   tmp.modify(isbn, -quantity);
   bs.write_main(tmp, (*it).second);
 
-  FinanceHistory fh{curUser().user_id, isbn, quantity, bs.bookinfo(isbn).price, SALE};
+  ID id = curUser().user_id;
+  double p = bs.bookinfo(isbn).price;
+  FinanceHistory fh{id, isbn, quantity, p, SALE};
   fs.add_his(fh);
 }
 
 void modify_book(const ISBN &isbn) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   // can throw "no book selected"
   sel.isbn = isbn;
@@ -142,30 +165,30 @@ void modify_book(const ISBN &isbn) {
 }
 
 void modify_book(const Author &author) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.author = author;
   bs.insert_book(sel);
 }
 
 void modify_book(const BookName &book_name) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.name = book_name;
   bs.insert_book(sel);
 }
 
 void modify_book(double price_) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
-  sel.price=price_;
+  sel.price = price_;
   bs.insert_book(sel);
 }
 
 void modify_book(const KeyWord &key_word_) {
-  if(curUser().privilege<3) error("low privilege\n");
+  if (curPrivilege() < 3) error("low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
-  sel.key_word=key_word_;
+  sel.key_word = key_word_;
   bs.insert_book(sel);
 }
 

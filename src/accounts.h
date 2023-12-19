@@ -60,7 +60,7 @@ public:
 
   Account() = default;
 
-  Account(ID &id, char p[35], char u[35], int pr) {
+  Account(const ID &id, const char p[35], const char u[35], int pr) {
     user_id = id;
     strcpy(password, p);
     strcpy(user_name, u);
@@ -188,7 +188,7 @@ public:
   }
 
   ~AccountSys() {
-    write_aux();
+
   }
 
   void init_main() {

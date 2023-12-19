@@ -73,9 +73,10 @@ public:
   void read_v() {
     file_aux.open(main_name + "_aux", fstream::in);
     pair<double, double> tmp;
+    file_aux.read(reinterpret_cast<char *>(&tmp), sizeof(pair<double, double>));
     while (!file_aux.eof()) {
-      file_aux.read(reinterpret_cast<char *>(&tmp), sizeof(pair<double, double>));
       v.push_back(tmp);
+      file_aux.read(reinterpret_cast<char *>(&tmp), sizeof(pair<double, double>));
     }
     file_aux.close();
   }
@@ -99,25 +100,31 @@ public:
     file_main.write(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
     file_main.close();
     ++count;
-    pair<double, double> last = v.back();
+    pair<double, double> last{};
+    if (!v.empty()) last = v.back();
     if (FH.type == SALE) last.first += FH.price * FH.amount;
     else if (FH.type == IMPORT) last.second += FH.price * FH.amount;
     v.push_back(last);
   }
 
-  pair<double,double> get_finance(){
+  pair<double, double> get_finance() {
     return v.back();
   }
 
-  pair<double,double> get_finance(int cnt){
-    if(cnt>v.size()) {
+  pair<double, double> get_finance(int cnt) {
+    if (cnt > v.size()) {
       error("overflow\n");
       return {};
-    } else if (cnt==count) {
+    } else if (cnt == count) {
       return get_finance();
     }
-    pair<double,double> st=v[v.size()-cnt-1],ed=v.back();
-    return {ed.first-st.first,ed.second-st.second};
+    pair<double, double> st = v[v.size() - cnt - 1], ed = v.back();
+    return {ed.first - st.first, ed.second - st.second};
+  }
+
+  void print() {
+    cout << "Finance: [count=" << count << "]\n";
+    for (auto &i: v) cout << "Sale: " << i.first << ", Cost: " << i.second << '\n';
   }
 
 };

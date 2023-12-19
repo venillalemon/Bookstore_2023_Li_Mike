@@ -234,16 +234,13 @@ public:
       BookNode head(st, 1), tail(ed, 2);
       append_main(head);
       append_main(tail);
-
     } else {
       file_main.close();
-      file_aux.close();
       read_aux();
     }
   }
 
   ~BookSys() {
-    write_aux();
   }
 
   void init_main() {
@@ -262,19 +259,19 @@ public:
 
     file_aux.open(main_name + "_book_name", fstream::out | fstream::binary);
     for (auto i: bn) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<BookName, int>));
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<BookName, ISBN>));
     }
     file_aux.close();
 
     file_aux.open(main_name + "_author", fstream::out | fstream::binary);
     for (auto i: au) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<Author, int>));
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<Author, ISBN>));
     }
     file_aux.close();
 
     file_aux.open(main_name + "_key_word", fstream::out | fstream::binary);
-    for (auto i: bn) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<KeyWord, int>));
+    for (auto i: kw) {
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<KeyWord, ISBN>));
     }
     file_aux.close();
   }
@@ -294,27 +291,30 @@ public:
     bn.clear();
     pair<BookName, ISBN> bookname;
     file_aux.open(main_name + "_book_name", ifstream::in);
+    file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, ISBN>));
     while (!file_aux.eof()) {
-      file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, ISBN>));
       bn.insert(bookname);
+      file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, ISBN>));
     }
     file_aux.close();
 
     au.clear();
     pair<Author, ISBN> author;
     file_aux.open(main_name + "_author", ifstream::in);
+    file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, ISBN>));
     while (!file_aux.eof()) {
-      file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, ISBN>));
       au.insert(author);
+      file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, ISBN>));
     }
     file_aux.close();
 
     kw.clear();
     pair<KeyWord, ISBN> keyword;
     file_aux.open(main_name + "_key_word", ifstream::in);
+    file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, ISBN>));
     while (!file_aux.eof()) {
-      file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, ISBN>));
       kw.insert(keyword);
+      file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, ISBN>));
     }
     file_aux.close();
   }
