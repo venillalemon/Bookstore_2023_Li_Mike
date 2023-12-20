@@ -123,7 +123,7 @@ public:
       if (found) data[i] = data[i + 1];
     }
     if (found) size--;
-    else error("account does not exist\n");
+    else error("account does not exist\n");// may invoke an error
     first = data[0].user_id;
   }
 

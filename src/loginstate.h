@@ -14,13 +14,13 @@ extern FinanceSys fs;
 //get the current user
 Account curUser() {
   if (login_list.empty()) error("visitor mode");
-  ID i = login_list.top().first;
+  ID i = login_list.back().first;
   return as.user(i);
 }
 
 Book curBook() {
   if (login_list.empty()) error("import/buy: no user logged in");
-  ISBN i = login_list.top().second;
+  ISBN i = login_list.back().second;
   if (i == ISBN()) error("import/buy: no book selected");
   return bs.bookinfo(i);
 }
@@ -40,13 +40,13 @@ void print() {
   cout << "==============end\n";
 }
 
-void reg(const ID &id, const char password[35] ,const char username[35]){
+void reg(const ID &id, const char password[35], const char username[35]) {
   as.insert_account(Account(id, password, username, 1));
 }
 
 void useradd(const ID &id, const char password[35], const char username[35], int privilege) {
-  if (curPrivilege() <privilege||curPrivilege()<3) {
-    error("low privilege");
+  if (curPrivilege() < privilege || curPrivilege() < 3) {
+    error("register: low privilege");
   }
   as.insert_account(Account(id, password, username, privilege));
 }
@@ -54,23 +54,23 @@ void useradd(const ID &id, const char password[35], const char username[35], int
 void login(const ID &id, const char password[35] = nullptr) {
   if (curPrivilege() != 7) {
     if (password == nullptr) {
-      error("require password");
+      error("login: require password");
     }
     Account i = as.user(id);
     if (!(i.user_id == id)) {
-      error("account not found to log in");
+      error("login: account not found to log in");
     }
     if (strcmp(i.password, password) == 0) {
       pair<ID, ISBN> m{};
       m.first = id;
-      login_list.push(m);
+      login_list.push_back(m);
     } else error("wrong password");
   } else {
     Account i = as.user(id);
     if (!(i.user_id == id)) {
-      error("account not found to log in");
+      error("login: account not found to log in");
     }
-    login_list.emplace(id, ISBN());
+    login_list.emplace_back(id, ISBN());
   }
 }
 
@@ -78,13 +78,13 @@ pair<ID, ISBN> logout() {
   if (login_list.empty()) {
     error("logout: no user logged in\n");
   }
-  auto tmp = login_list.top();
-  login_list.pop();
+  auto tmp = login_list.back();
+  login_list.pop_back();
   cout << tmp.first.id << " " << tmp.second.id << '\n';
   return tmp;
 }
 
-void resetpasswd(const ID &id, char _new_p[35], char _password[35] = nullptr) {
+void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] = nullptr) {
   Account tmp = as.user(id);
   if (!(tmp.user_id == id)) {
     error("passwd: account does not exist\n");
@@ -108,14 +108,14 @@ void resetpasswd(const ID &id, char _new_p[35], char _password[35] = nullptr) {
 
 void select(const ISBN &isbn) {
   if (curPrivilege() < 3) {
-    error("low privilege");
+    error("select: low privilege");
   }
   if (login_list.empty()) { return; }
-  auto tmp = login_list.top();
-  login_list.pop();
+  auto tmp = login_list.back();
+  login_list.pop_back();
   tmp.second = isbn;
-  login_list.push(tmp);
-  tmp = login_list.top();
+  login_list.push_back(tmp);
+  tmp = login_list.back();
   cout << tmp.first.id << " selects " << tmp.second.id << '\n';
   Book b = bs.bookinfo(isbn);
   if (!(b.isbn == isbn)) {
@@ -124,13 +124,15 @@ void select(const ISBN &isbn) {
 }
 
 void import(int quantity, double tot_cost) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("import: low privilege\n");
+  if (quantity <= 0) error("import: invalid quantity\n");
+  if (tot_cost <= 0) error("import: invalid cost\n");
   auto it = bs.list.upper_bound(curBook().isbn);
   // throw an error when no book is selected
   it--;
   BookNode tmp;
   bs.read_main(tmp, (*it).second);
-  tmp.modify(login_list.top().second, quantity);
+  tmp.modify(login_list.back().second, quantity);
   bs.write_main(tmp, (*it).second);
 
   FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, tot_cost / quantity, IMPORT};
@@ -138,7 +140,7 @@ void import(int quantity, double tot_cost) {
 }
 
 void buy(const ISBN &isbn, int quantity) {
-  if (curPrivilege() < 1) error("low privilege\n");
+  if (curPrivilege() < 1) error("buy: low privilege\n");
   auto it = bs.list.upper_bound(isbn);
   it--;
   BookNode tmp;
@@ -153,43 +155,54 @@ void buy(const ISBN &isbn, int quantity) {
 }
 
 void modify_book(const ISBN &isbn) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("modify book: low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   // can throw "no book selected"
+  if (sel.isbn == isbn) error("modify book: ISBN remains the same\n");
   sel.isbn = isbn;
   bs.insert_book(sel);
-  auto t = login_list.top();
-  login_list.pop();
+  auto t = login_list.back();
+  login_list.pop_back();
   t.second = isbn;
-  login_list.push(t);
+  login_list.push_back(t);
 }
 
 void modify_book(const Author &author) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("modify book: low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.author = author;
   bs.insert_book(sel);
 }
 
 void modify_book(const BookName &book_name) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("modify book: low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.name = book_name;
   bs.insert_book(sel);
 }
 
 void modify_book(double price_) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("modify book: low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.price = price_;
   bs.insert_book(sel);
 }
 
 void modify_book(const KeyWord &key_word_) {
-  if (curPrivilege() < 3) error("low privilege\n");
+  if (curPrivilege() < 3) error("modify book: low privilege\n");
   Book sel = bs.remove_book(curBook().isbn);
   sel.key_word = key_word_;
   bs.insert_book(sel);
+}
+
+void delete_account(const ID &id) {
+  if (curPrivilege() < 7) error("delete: low privilege\n");
+  for (auto i: login_list) {
+    if (i.first == id) {
+      error("delete: cannot delete current user\n");
+    }
+  }
+  as.remove_account(id);
 }
 
 #endif

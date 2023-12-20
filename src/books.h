@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <stack>
+#include <vector>
 #include <unordered_map>
 #include <map>
 #include <set>
@@ -17,7 +17,7 @@ using std::string;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
-using std::stack;
+using std::vector;
 using std::set;
 using std::unordered_map;
 using std::map;
@@ -69,7 +69,7 @@ typedef m_string<68> BookName;
 typedef m_string<69> Author;
 typedef m_string<70> KeyWord;
 
-extern stack<pair<ID, ISBN>> login_list;
+extern vector<pair<ID, ISBN>> login_list;
 
 class Book {
 public:

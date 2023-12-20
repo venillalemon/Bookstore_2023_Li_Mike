@@ -13,4 +13,5 @@ add_executable(code
         main.cpp
         src/loginstate.h
         src/finance.h
-        src/error.h)
+        src/error.h
+        src/parser.h)
