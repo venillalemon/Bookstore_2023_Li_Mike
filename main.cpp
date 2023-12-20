@@ -1,9 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include "parser.h"
 
 using std::cin;
 using std::string;
+using std::ifstream;
 
 char s[35];
 char passwd[35];
@@ -18,6 +20,9 @@ FinanceSys fs("finance");
 vector<pair<ID, ISBN>> login_list;
 
 int main() {
+  //ifstream cin;
+  //cin.open("bookstore-testcases/basic/testcase3.in", ifstream::in);
+  //freopen("bookstore-testcases/basic/testcase3.out", "w", stdout);
   while (true) {
     try {
       std::string input;
@@ -56,7 +61,7 @@ int main() {
 
 
     } catch (ErrorException &ex) {
-      std::cout << ex.getMessage();
+      std::cout << "Invalid\n";
     }
   }
   as.write_aux();

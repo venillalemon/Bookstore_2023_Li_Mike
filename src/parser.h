@@ -22,7 +22,7 @@ void parse_Command(const string &input) {
     string userID = match.str(1);
     std::string password = match.str(3);
     ID user_id(userID.c_str());
-    cout << user_id << " " << password << '\n';
+    //cout << user_id << " " << password << '\n';
     login(user_id, password.c_str());
     return;
   }
@@ -32,7 +32,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex register_regex(R"(register\s(\w+)\s(\w+)\s([^\s]+)\s)");
+  regex register_regex(R"(register (\w+) (\w+) ([^\s]+))");
   smatch register_match;
   if (regex_match(input, register_match, register_regex)) {
     string userID = register_match.str(1);
@@ -41,6 +41,7 @@ void parse_Command(const string &input) {
     ID user_id(userID.c_str());
     //cout << user_id << " " << password << " " << username << '\n';
     reg(user_id, password.c_str(), username.c_str());
+    //login(user_id,password.c_str());
     return;
   }
 
@@ -53,6 +54,7 @@ void parse_Command(const string &input) {
     string username = useradd_match.str(4);
     ID user_id(userID.c_str());
     useradd(user_id, password.c_str(), username.c_str(), std::stoi(privilege));
+    //login(user_id,password.c_str());
     //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
     return;
   }
@@ -73,9 +75,9 @@ void parse_Command(const string &input) {
   smatch delete_match;
   if (regex_match(input, delete_match, delete_regex)) {
     string userID = delete_match.str(1);
-    ID user_id(userID.c_str());
+    ID user_id(userID.c_str());//cout << user_id << '\n';
     delete_account(user_id);
-    //cout << user_id << '\n';
+
     return;
   }
 
@@ -162,7 +164,7 @@ void parse_Command(const string &input) {
       citer = tok_match[0].second;
       string command = tok_match.str(2);
       string value = tok_match.str(3);
-      cout << command << " " << value << "\n";
+      //cout << command << " " << value << "\n";
       if (command == "ISBN") {
         isbn=ISBN(value.c_str());
       } else if (command == "name") {
@@ -209,29 +211,29 @@ void parse_Command(const string &input) {
   if (regex_match(input, show_finance_match, show_finance_regex)) {
     string time = show_finance_match.str(2);
     //show_finance(std::stoi(time));
-    cout << time << '\n';
+    //cout << time << '\n';
     return;
   }
 
   if (input == "log") {
     //log();
-    cout << "log\n";
+    //cout << "log\n";
     return;
   }
 
   if (input == "report finance") {
     fs.print();
-    cout << "finance\n";
+    //cout << "finance\n";
     return;
   }
 
   if (input == "report employee") {
     //as.print();
-    cout << "employee\n";
+    //cout << "employee\n";
     return;
   }
 
-  error("Invalid\n");
+  error("Invalid: no match\n");
 
 }
 

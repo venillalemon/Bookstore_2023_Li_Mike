@@ -50,8 +50,8 @@ void reg(const ID &id, const char password[35], const char username[35]) {
 }
 
 void useradd(const ID &id, const char password[35], const char username[35], int privilege) {
-  if (curPrivilege() < privilege || curPrivilege() < 3) {
-    error("useradd: low privilege");
+  if (curPrivilege() <= privilege || curPrivilege() < 3) {
+    error("useradd: low privilege\n");
   }
   as.insert_account(Account(id, password, username, privilege));
 }
@@ -85,7 +85,7 @@ pair<ID, ISBN> logout() {
   }
   auto tmp = login_list.back();
   login_list.pop_back();
-  cout << tmp.first.id << " " << tmp.second.id << '\n';
+  //cout << tmp.first.id << " " << tmp.second.id << '\n';
   return tmp;
 }
 

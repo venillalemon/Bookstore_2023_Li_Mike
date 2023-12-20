@@ -115,7 +115,7 @@ public:
     }
     if (data[l].user_id == id) return data[l];
     else {
-      cout<<"not found\n";
+      //cout<<"not found\n";
       return {};
     }
   }
@@ -304,8 +304,10 @@ public:
     int pos = (*del).second;
     if (pos != 1 && pos != 2) {
       read_main(node, pos);
-      list.erase(node.first);
+      ID fi=node.first;
       node.remove(id);
+      list.erase(fi);
+      //cout<<"fdg\n";
       write_main(node, pos);
       if (node.size != 0) list.insert(pair<ID, int>(node.first, node.pos));
       else {
