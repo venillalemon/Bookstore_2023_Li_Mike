@@ -10,7 +10,7 @@
 extern AccountSys as;
 extern BookSys bs;
 extern FinanceSys fs;
-extern vector<pair<ID,ISBN>> login_list;
+extern vector<pair<ID, ISBN>> login_list;
 
 //get the current user
 Account curUser() {
@@ -39,10 +39,10 @@ void print() {
   cout << "==============fs\n";
   fs.print();
   cout << "==============login\n";
-  for(auto i:login_list){
-    cout<<i.first.id<<i.second<<'\n';
+  for (auto i: login_list) {
+    cout << i.first.id << i.second << '\n';
   }
-  cout<<"=================end\n";
+  cout << "=================end\n";
 }
 
 void reg(const ID &id, const char password[35], const char username[35]) {
@@ -161,15 +161,15 @@ void buy(const ISBN &isbn, int quantity) {
 
 void modify_book(const ISBN &isbn) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
-  Book sel = bs.remove_book(curBook().isbn);
-  // can throw "no book selected"
-  if (sel.isbn == isbn) error("modify book: ISBN remains the same\n");
+  ISBN del_isbn = curBook().isbn;// can throw "no book selected"
+  if (del_isbn == isbn) { error("modify book: ISBN remains the same\n"); }
+
+  Book sel = bs.remove_book(del_isbn);
   sel.isbn = isbn;
   bs.insert_book(sel);
-  auto t = login_list.back();
-  login_list.pop_back();
-  t.second = isbn;
-  login_list.push_back(t);
+  for (auto &i: login_list) {
+    if (i.second == del_isbn) i.second = isbn;
+  }
 }
 
 void modify_book(const Author &author) {
@@ -208,6 +208,26 @@ void delete_account(const ID &id) {
     }
   }
   as.remove_account(id);
+}
+
+void find_book(const ISBN &isbn) {
+  if (curPrivilege() < 1) error("show: low privilege\n");
+  bs.find_book(isbn);
+}
+
+void find_book(const BookName &isbn) {
+  if (curPrivilege() < 1) error("show: low privilege\n");
+  bs.find_book(isbn);
+}
+
+void find_book(const Author &isbn) {
+  if (curPrivilege() < 1) error("show: low privilege\n");
+  bs.find_book(isbn);
+}
+
+void find_book(const KeyWord &isbn) {
+  if (curPrivilege() < 1) error("show: low privilege\n");
+  bs.find_book(isbn);
 }
 
 #endif

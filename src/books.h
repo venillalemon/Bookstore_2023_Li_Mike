@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <cstring>
+#include <iomanip>
 #include "error.h"
 
 using std::cout;
@@ -94,7 +95,9 @@ public:
 
   void show() const {
     cout << isbn << '\t' << name << '\t' << author << '\t';
-    cout << key_word << '\t' << price << '\t' << storage << '\n';
+    cout << key_word << '\t';
+    cout << std::fixed << std::setprecision(2) << price;
+    cout << '\t' << std::setprecision(0) << storage << '\n';
   }
 };
 
@@ -123,6 +126,19 @@ public:
       cout << " " << data[i].author << " ";
       cout << data[i].key_word << " ";
       cout << data[i].price << " " << data[i].storage << '\n';
+    }
+  }
+
+  void show() {
+    if (pos < 3) {
+      return;
+    }
+    for (int i = 0; i < size; ++i) {
+      cout << data[i].isbn << "\t" << data[i].name;
+      cout << "\t" << data[i].author << "\t";
+      cout << data[i].key_word << "\t";
+      cout << std::fixed << std::setprecision(2) << data[i].price;
+      cout << "\t" << std::setprecision(0) << data[i].storage << '\n';
     }
   }
 
@@ -368,6 +384,17 @@ public:
     for (auto i: kw) {
       cout << i.first << " " << i.second << '\n';
     }
+  }
+
+  void show(){
+    BookNode n;
+    file_main.open(main_name, std::ifstream::in);
+    for (auto i: list) {
+      file_main.seekg((i.second - 1) * sizeof(BookNode));
+      file_main.read(reinterpret_cast<char *> (&n), sizeof(BookNode));
+      n.show();
+    }
+    file_main.close();
   }
 
   Book bookinfo(const ISBN &isbn) {

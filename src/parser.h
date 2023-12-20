@@ -85,28 +85,28 @@ void parse_Command(const string &input) {
   if (regex_match(input, show_match, show_regex)) {
     string command = show_match.str(2);
     if (command.empty()) {
-      //show();
-      cout << "show\n";
+      bs.show();
+      //cout << "show\n";
     } else {
       if (command[1] == 'I') {
         string ISB = command.substr(6);
         ISBN isbn(ISB.c_str());
-        bs.find_book(isbn);
+        find_book(isbn);
         //cout << "show_ISBN " << isbn << '\n';
       } else if (command[1] == 'n') {
         string name = command.substr(7, command.size() - 8);
         BookName book_name(name.c_str());
-        bs.find_book(book_name);
+        find_book(book_name);
         //cout << "show_name " << book_name << '\n';
       } else if (command[1] == 'a') {
         string author = command.substr(9, command.size() - 10);
         Author auth(author.c_str());
-        bs.find_book(auth);
+        find_book(auth);
         //cout << "show_author " << auth << '\n';
       } else if (command[1] == 'k') {
         string keyword = command.substr(10, command.size() - 11);
         KeyWord key_word(keyword.c_str());
-        bs.find_book(key_word);
+        find_book(key_word);
         //cout << "show_keyword " << key_word << '\n';
       }
     }
@@ -148,6 +148,11 @@ void parse_Command(const string &input) {
           R"(modify( (-ISBN=[^\s]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"|-price=\d+(.\d+)?))+)");
   smatch modify_match;
   if (regex_match(input, modify_match, modify_regex)) {
+    ISBN isbn{};
+    BookName book_name{};
+    Author auth{};
+    KeyWord key_word{};
+    double price = -1;
     string tok = input.substr(7);
     //cout << tok << "\n";
     smatch tok_match;
@@ -159,27 +164,43 @@ void parse_Command(const string &input) {
       string value = tok_match.str(3);
       cout << command << " " << value << "\n";
       if (command == "ISBN") {
-        ISBN isbn(value.c_str());
-        modify_book(isbn);
+        isbn=ISBN(value.c_str());
       } else if (command == "name") {
         value = value.substr(1, value.size() - 2);
-        BookName book_name(value.c_str());
-        //cout << value;
-        modify_book(book_name);
+        book_name=BookName(value.c_str());
       } else if (command == "author") {
         value = value.substr(1, value.size() - 2);
-        Author auth(value.c_str());
-        //cout << value;
-        modify_book(auth);
+        auth=Author(value.c_str());
       } else if (command == "keyword") {
         value = value.substr(1, value.size() - 2);
-        KeyWord key_word(value.c_str());
-        //cout << value;
-        modify_book(key_word);
+        key_word=KeyWord (value.c_str());
       } else if (command == "price") {
-        modify_book(std::stod(value));
+        price=std::stod(value);
       }
     }
+    if(key_word!=KeyWord{}) {
+      vector<KeyWord>kl;
+      char key_list[70];
+      strcpy(key_list, key_word.id);
+      char t[70];
+      char *token = strtok(key_list, "|");
+      while (token != nullptr) {
+        strcpy(t, token);
+        for(auto i:kl){
+          if(i==KeyWord(t)) error("modify: repeated keyword\n");
+        }
+        kl.emplace_back(t);
+        token = strtok(nullptr, "|");
+      }
+      modify_book(key_word);
+    }
+    if(price!=-1) modify_book(price);
+    if(isbn!=ISBN{}) modify_book(isbn);
+    if(book_name!=BookName{}) modify_book(book_name);
+    if(auth!=Author{}) modify_book(auth);
+
+
+
     return;
   }
 
