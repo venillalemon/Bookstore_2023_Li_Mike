@@ -22,7 +22,7 @@ void parse_Command(const string &input) {
     string userID = match.str(1);
     std::string password = match.str(3);
     ID user_id(userID.c_str());
-    //cout << user_id << " " << password << '\n';
+    cout << user_id << " " << password << '\n';
     login(user_id, password.c_str());
     return;
   }
@@ -32,7 +32,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex register_regex(R"(register (\w+) (\w+) ([^\s]+))");
+  regex register_regex(R"(register\s(\w+)\s(\w+)\s([^\s]+)\s)");
   smatch register_match;
   if (regex_match(input, register_match, register_regex)) {
     string userID = register_match.str(1);
@@ -89,21 +89,25 @@ void parse_Command(const string &input) {
       cout << "show\n";
     } else {
       if (command[1] == 'I') {
-        string ISBN = command.substr(6);
-        //show_ISBN(ISBN);
-        cout << "show_ISBN " << ISBN << '\n';
+        string ISB = command.substr(6);
+        ISBN isbn(ISB.c_str());
+        bs.find_book(isbn);
+        //cout << "show_ISBN " << isbn << '\n';
       } else if (command[1] == 'n') {
         string name = command.substr(7, command.size() - 8);
-        //show_name(name);
-        cout << "show_name " << name << '\n';
+        BookName book_name(name.c_str());
+        bs.find_book(book_name);
+        //cout << "show_name " << book_name << '\n';
       } else if (command[1] == 'a') {
         string author = command.substr(9, command.size() - 10);
-        //show_author(author);
-        cout << "show_author " << author << '\n';
+        Author auth(author.c_str());
+        bs.find_book(auth);
+        //cout << "show_author " << auth << '\n';
       } else if (command[1] == 'k') {
         string keyword = command.substr(10, command.size() - 11);
-        //show_keyword(keyword);
-        cout << "show_keyword " << keyword << '\n';
+        KeyWord key_word(keyword.c_str());
+        bs.find_book(key_word);
+        //cout << "show_keyword " << key_word << '\n';
       }
     }
     return;
@@ -112,19 +116,21 @@ void parse_Command(const string &input) {
   regex buy_regex(R"(buy (\w+) (\d+))");
   smatch buy_match;
   if (regex_match(input, buy_match, buy_regex)) {
-    string ISBN = buy_match.str(1);
+    string ISB = buy_match.str(1);
     string quantity = buy_match.str(2);
-    //buy((ISBN &) ISBN, std::stoi(quantity));
-    cout << ISBN << " " << quantity << '\n';
+    ISBN isbn(ISB.c_str());
+    buy(isbn, std::stoi(quantity));
+    //cout << isbn << " " << quantity << '\n';
     return;
   }
 
   regex select_regex(R"(select (\w+))");
   smatch select_match;
   if (regex_match(input, select_match, select_regex)) {
-    string ISBN = select_match.str(1);
-    //select((ISBN &) ISBN);
-    cout << ISBN << '\n';
+    string ISB = select_match.str(1);
+    ISBN isbn(ISB.c_str());
+    select(isbn);
+    //cout << isbn << '\n';
     return;
   }
 
@@ -133,8 +139,8 @@ void parse_Command(const string &input) {
   if (regex_match(input, import_match, import_regex)) {
     string quantity = import_match.str(1);
     string cost = import_match.str(2);
-    //import(std::stoi(quantity), std::stod(cost));
-    cout << quantity << " " << cost << '\n';
+    import(std::stoi(quantity), std::stod(cost));
+    //cout << quantity << " " << cost << '\n';
     return;
   }
 
@@ -153,21 +159,25 @@ void parse_Command(const string &input) {
       string value = tok_match.str(3);
       cout << command << " " << value << "\n";
       if (command == "ISBN") {
-        //modify_book((ISBN&)value);
+        ISBN isbn(value.c_str());
+        modify_book(isbn);
       } else if (command == "name") {
         value = value.substr(1, value.size() - 2);
-        cout << value;
-        //modify_book((BookName&)value);
+        BookName book_name(value.c_str());
+        //cout << value;
+        modify_book(book_name);
       } else if (command == "author") {
         value = value.substr(1, value.size() - 2);
-        cout << value;
-        //modify_book((Author&)value);
+        Author auth(value.c_str());
+        //cout << value;
+        modify_book(auth);
       } else if (command == "keyword") {
         value = value.substr(1, value.size() - 2);
-        cout << value;
-        //modify_book((KeyWord&)value);
+        KeyWord key_word(value.c_str());
+        //cout << value;
+        modify_book(key_word);
       } else if (command == "price") {
-        //modify_book(std::stod(value));
+        modify_book(std::stod(value));
       }
     }
     return;

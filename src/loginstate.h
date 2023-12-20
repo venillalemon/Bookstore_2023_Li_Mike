@@ -14,15 +14,15 @@ extern vector<pair<ID,ISBN>> login_list;
 
 //get the current user
 Account curUser() {
-  if (login_list.empty()) error("visitor mode");
+  if (login_list.empty()) error("visitor mode\n");
   ID i = login_list.back().first;
   return as.user(i);
 }
 
 Book curBook() {
-  if (login_list.empty()) error("import/buy: no user logged in");
+  if (login_list.empty()) error("import/buy: no user logged in\n");
   ISBN i = login_list.back().second;
-  if (i == ISBN()) error("import/buy: no book selected");
+  if (i == ISBN()) error("import/buy: no book selected\n");
   return bs.bookinfo(i);
 }
 
