@@ -11,18 +11,24 @@ using std::smatch;
 
 void parse_Command(const string &input) {
 
+  if (input == "print") {
+    print();
+    return;
+  }
+
   regex su_regex(R"(su (\w+)( (\w+))?)");
   smatch match;
   if (regex_match(input, match, su_regex)) {
     string userID = match.str(1);
     std::string password = match.str(3);
-    login((ID &) userID, password.c_str());
-    //cout << userID << " " << password << '\n';
+    ID user_id(userID.c_str());
+    //cout << user_id << " " << password << '\n';
+    login(user_id, password.c_str());
     return;
   }
 
   if (input == "logout") {
-    //logout();
+    logout();
     return;
   }
 
@@ -32,8 +38,9 @@ void parse_Command(const string &input) {
     string userID = register_match.str(1);
     string password = register_match.str(2);
     string username = register_match.str(3);
-    //reg((ID &) userID, password.c_str(), username.c_str());
-    cout << userID << " " << password << " " << username << '\n';
+    ID user_id(userID.c_str());
+    //cout << user_id << " " << password << " " << username << '\n';
+    reg(user_id, password.c_str(), username.c_str());
     return;
   }
 
@@ -44,8 +51,9 @@ void parse_Command(const string &input) {
     string password = useradd_match.str(2);
     string privilege = useradd_match.str(3);
     string username = useradd_match.str(4);
-    //useradd((ID &) userID, password.c_str(), username.c_str(), std::stoi(privilege));
-    cout << userID << " " << password << " " << privilege << " " << username << '\n';
+    ID user_id(userID.c_str());
+    useradd(user_id, password.c_str(), username.c_str(), std::stoi(privilege));
+    //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
     return;
   }
 
@@ -55,8 +63,9 @@ void parse_Command(const string &input) {
     string userID = passwd_match.str(1);
     string old_password = passwd_match.str(3);
     string new_password = passwd_match.str(4);
-    //resetpasswd((ID &) userID, new_password.c_str(),old_password.c_str());
-    cout << userID << " " << old_password << " " << new_password << '\n';
+    ID user_id(userID.c_str());
+    resetpasswd(user_id, new_password.c_str(),old_password.c_str());
+    //cout << user_id << " " << old_password << " " << new_password << '\n';
     return;
   }
 
@@ -64,8 +73,9 @@ void parse_Command(const string &input) {
   smatch delete_match;
   if (regex_match(input, delete_match, delete_regex)) {
     string userID = delete_match.str(1);
-    //delete_account((ID &) userID);
-    cout << userID << '\n';
+    ID user_id(userID.c_str());
+    delete_account(user_id);
+    //cout << user_id << '\n';
     return;
   }
 
@@ -139,24 +149,24 @@ void parse_Command(const string &input) {
     string::const_iterator citer = tok.cbegin();
     while (regex_search(citer, tok.cend(), tok_match, pattern)) {
       citer = tok_match[0].second;
-      string command=tok_match.str(2);
-      string value=tok_match.str(3);
-      cout<<command<<" "<<value<<"\n";
-      if(command=="ISBN") {
+      string command = tok_match.str(2);
+      string value = tok_match.str(3);
+      cout << command << " " << value << "\n";
+      if (command == "ISBN") {
         //modify_book((ISBN&)value);
-      } else if(command=="name") {
-        value=value.substr(1,value.size()-2);
-        cout<<value;
+      } else if (command == "name") {
+        value = value.substr(1, value.size() - 2);
+        cout << value;
         //modify_book((BookName&)value);
-      } else if(command=="author") {
-        value=value.substr(1,value.size()-2);
-        cout<<value;
+      } else if (command == "author") {
+        value = value.substr(1, value.size() - 2);
+        cout << value;
         //modify_book((Author&)value);
-      } else if(command=="keyword") {
-        value=value.substr(1,value.size()-2);
-        cout<<value;
+      } else if (command == "keyword") {
+        value = value.substr(1, value.size() - 2);
+        cout << value;
         //modify_book((KeyWord&)value);
-      } else if(command=="price") {
+      } else if (command == "price") {
         //modify_book(std::stod(value));
       }
     }

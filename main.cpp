@@ -12,15 +12,12 @@ char isbn[25];
 string op;
 int val;
 
-bool process_line(const string &);
-
 AccountSys as("account");
 BookSys bs("book");
 FinanceSys fs("finance");
 vector<pair<ID, ISBN>> login_list;
 
 int main() {
-
   while (true) {
     try {
       std::string input;

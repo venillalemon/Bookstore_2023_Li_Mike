@@ -1,5 +1,5 @@
-#ifndef _ACCOUNTS_H
-#define _ACCOUNTS_H
+#ifndef CODE_ACCOUNTS_H
+#define CODE_ACCOUNTS_H
 #pragma once
 
 #include <iostream>
@@ -8,11 +8,12 @@
 #include <map>
 #include <cstring>
 #include <stack>
-#include "error.h"
+#include "books.h"
 
 using std::cout;
 using std::string;
 using std::fstream;
+using std::ostream;
 using std::ifstream;
 using std::ofstream;
 using std::stack;
@@ -23,37 +24,13 @@ using std::pair;
 
 const int block_len = 250; // length of block
 
-class ID {
-public:
-  char id[35] = "";
-
-  ID() = default;
-
-  explicit ID(char _key[]) {
-    strcpy(id, _key);
-  }
-
-  bool operator==(const ID &rhs) const {
-    return (strcmp(id, rhs.id) == 0);
-  }
-
-  bool operator<(const ID &rhs) const {
-    return (strcmp(id, rhs.id) < 0);
-  }
-
-  ID &operator=(const ID &rhs) {
-    if (&rhs == this) return *this;
-    strcpy(id, rhs.id);
-    return *this;
-  }
-
-};
+typedef m_string<35> ID;
 
 class Account {
 
 public:
 
-  ID user_id;
+  ID user_id{};
   char password[35]{};
   char user_name[35]{};
   int privilege{};

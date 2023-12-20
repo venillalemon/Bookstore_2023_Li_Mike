@@ -34,7 +34,7 @@ public:
 
   m_string() = default;
 
-  explicit m_string(char _key[]) {
+  explicit m_string(const char _key[]) {
     strcpy(id, _key);
   }
 
@@ -68,8 +68,6 @@ typedef m_string<25> ISBN;
 typedef m_string<68> BookName;
 typedef m_string<69> Author;
 typedef m_string<70> KeyWord;
-
-extern vector<pair<ID, ISBN>> login_list;
 
 class Book {
 public:
@@ -438,7 +436,7 @@ public:
         next_node.insert(bo);
         write_main(next_node, pos);
         list.insert(pair<ISBN, int>(next_node.first, pos));
-        if (next_node.size >= block_len - 20) {
+        if (next_node.size >= block_len_book - 20) {
           divide_node(pos);
         }
       }
@@ -447,7 +445,7 @@ public:
       read_main(next_node, (*it).second);
       next_node.insert(bo);
       write_main(next_node, (*it).second);
-      if (next_node.size >= block_len - 20) {
+      if (next_node.size >= block_len_book - 20) {
         divide_node((*it).second);
       }
     }

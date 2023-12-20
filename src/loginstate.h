@@ -10,6 +10,7 @@
 extern AccountSys as;
 extern BookSys bs;
 extern FinanceSys fs;
+extern vector<pair<ID,ISBN>> login_list;
 
 //get the current user
 Account curUser() {
@@ -37,7 +38,11 @@ void print() {
   bs.print();
   cout << "==============fs\n";
   fs.print();
-  cout << "==============end\n";
+  cout << "==============login\n";
+  for(auto i:login_list){
+    cout<<i.first.id<<i.second<<'\n';
+  }
+  cout<<"=================end\n";
 }
 
 void reg(const ID &id, const char password[35], const char username[35]) {
@@ -46,7 +51,7 @@ void reg(const ID &id, const char password[35], const char username[35]) {
 
 void useradd(const ID &id, const char password[35], const char username[35], int privilege) {
   if (curPrivilege() < privilege || curPrivilege() < 3) {
-    error("register: low privilege");
+    error("useradd: low privilege");
   }
   as.insert_account(Account(id, password, username, privilege));
 }
@@ -54,21 +59,21 @@ void useradd(const ID &id, const char password[35], const char username[35], int
 void login(const ID &id, const char password[35] = nullptr) {
   if (curPrivilege() != 7) {
     if (password == nullptr) {
-      error("login: require password");
+      error("login: require password\n");
     }
     Account i = as.user(id);
     if (!(i.user_id == id)) {
-      error("login: account not found to log in");
+      error("login: account not found to log in\n");
     }
     if (strcmp(i.password, password) == 0) {
       pair<ID, ISBN> m{};
       m.first = id;
       login_list.push_back(m);
-    } else error("wrong password");
+    } else error("wrong password\n");
   } else {
     Account i = as.user(id);
     if (!(i.user_id == id)) {
-      error("login: account not found to log in");
+      error("login: account not found to log in\n");
     }
     login_list.emplace_back(id, ISBN());
   }
