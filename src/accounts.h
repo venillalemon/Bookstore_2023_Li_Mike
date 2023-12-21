@@ -22,7 +22,7 @@ using std::map;
 using std::pair;
 
 
-const int block_len = 500; // length of block
+const int block_len = 80; // length of block
 
 typedef m_string<35> ID;
 
