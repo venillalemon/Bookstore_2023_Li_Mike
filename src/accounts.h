@@ -120,6 +120,23 @@ public:
     }
   }
 
+  void resetpasswd(const ID& id,const char password[35]){
+    int l = 0, r = size;
+    int mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (id < data[mid].user_id) {
+        r = mid;
+      } else l = mid;
+    }
+    if (data[l].user_id == id) {
+      strcpy(data[l].password,password);
+    }
+    else {
+      error("reset passwd: account does not exist\n");
+    }
+  }
+
 };
 
 
@@ -328,7 +345,19 @@ public:
     }
   }
 
-
+  void resetpasswd(const ID& id,const char password[35]){
+    auto del = list.upper_bound(id);
+    del--;
+    AccountNode node;
+    int pos = (*del).second;
+    if (pos != 1 && pos != 2) {
+      read_main(node, pos);
+      node.resetpasswd(id,password);
+      write_main(node, pos);
+    } else {
+      error("reset passwd: account does not exist\n");
+    }
+  }
 
 };
 

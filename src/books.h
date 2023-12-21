@@ -214,6 +214,82 @@ public:
     }
   }
 
+  BookName modify_book(const ISBN &isbn, const BookName &name) {
+    int l = 0, r = size;
+    int mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (isbn < data[mid].isbn) {
+        r = mid;
+      } else l = mid;
+    }
+    if (data[l].isbn == isbn) {
+      BookName tmp = data[l].name;
+      data[l].name = name;
+      return tmp;
+    } else {
+      error("not found book to modify\n");
+    }
+    return {};
+  }
+
+  Author modify_book(const ISBN &isbn, const Author &author) {
+    int l = 0, r = size;
+    int mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (isbn < data[mid].isbn) {
+        r = mid;
+      } else l = mid;
+    }
+    if (data[l].isbn == isbn) {
+      Author tmp = data[l].author;
+      data[l].author = author;
+      return tmp;
+    } else {
+      error("not found book to modify\n");
+    }
+    return {};
+  }
+
+  KeyWord modify_book(const ISBN &isbn, const KeyWord &key_word) {
+    int l = 0, r = size;
+    int mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (isbn < data[mid].isbn) {
+        r = mid;
+      } else l = mid;
+    }
+    if (data[l].isbn == isbn) {
+      KeyWord tmp = data[l].key_word;
+      data[l].key_word = key_word;
+      return tmp;
+    } else {
+      error("not found book to modify\n");
+    }
+    return {};
+  }
+
+  double modify_book(const ISBN& isbn,double price){
+    int l = 0, r = size;
+    int mid;
+    while (l + 1 < r) {
+      mid = (l + r) >> 1;
+      if (isbn < data[mid].isbn) {
+        r = mid;
+      } else l = mid;
+    }
+    if (data[l].isbn == isbn) {
+      double tmp = data[l].price;
+      data[l].price = price;
+      return tmp;
+    } else {
+      error("not found book to modify\n");
+    }
+    return -1;
+  }
+
 };
 
 class BookSys {
@@ -536,7 +612,7 @@ public:
     if (pos != 1 && pos != 2) {
       read_main(node, pos);
       list.erase(node.first);
-      tmp = node.remove(isbn);
+      tmp = node.remove(isbn);//the above two lines cannot be reversed
       write_main(node, pos);
       if (node.size != 0) list.insert(pair<ISBN, int>(node.first, node.pos));
       else {
@@ -586,6 +662,70 @@ public:
         }
       }
       token = strtok(nullptr, "|");
+    }
+  }
+
+  void modify_book(const ISBN &isbn, const BookName &name) {
+    auto mod = list.upper_bound(isbn);
+    mod--;
+    BookNode node;
+    if ((*mod).second != 1 && (*mod).second != 2) {
+      read_main(node, (*mod).second);
+
+      BookName n = node.modify_book(isbn, name);
+      write_main(node, (*mod).second);
+
+      remove_from_bn(n, isbn);
+      bn.insert({name, isbn});
+    } else {
+      error("not found book to modify\n");
+    }
+  }
+
+  void modify_book(const ISBN &isbn, const Author &author) {
+    auto mod = list.upper_bound(isbn);
+    mod--;
+    BookNode node;
+    if ((*mod).second != 1 && (*mod).second != 2) {
+      read_main(node, (*mod).second);
+
+      Author a = node.modify_book(isbn, author);
+      write_main(node, (*mod).second);
+
+      remove_from_au(a, isbn);
+      au.insert({author, isbn});
+    } else {
+      error("not found book to modify\n");
+    }
+  }
+
+  void modify_book(const ISBN &isbn, const KeyWord &key_word) {
+    auto mod = list.upper_bound(isbn);
+    mod--;
+    BookNode node;
+    if ((*mod).second != 1 && (*mod).second != 2) {
+      read_main(node, (*mod).second);
+
+      KeyWord k = node.modify_book(isbn, key_word);
+      write_main(node, (*mod).second);
+
+      remove_from_kw(k, isbn);
+      insert_key_word(key_word.id, isbn);
+    } else {
+      error("not found book to modify\n");
+    }
+  }
+
+  void modify_book(const ISBN& isbn,double price){
+    auto mod = list.upper_bound(isbn);
+    mod--;
+    BookNode node;
+    if ((*mod).second != 1 && (*mod).second != 2) {
+      read_main(node, (*mod).second);
+      node.modify_book(isbn, price);
+      write_main(node, (*mod).second);
+    } else {
+      error("not found book to modify\n");
     }
   }
 

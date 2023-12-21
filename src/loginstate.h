@@ -97,14 +97,10 @@ void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] =
   }
 
   if (curUser().privilege == 7) {
-    as.remove_account(id);
-    strcpy(tmp.password, _new_p);
-    as.insert_account(tmp);
+    as.resetpasswd(id, _new_p);
   } else {
     if (strcmp(tmp.password, _password) == 0) {
-      as.remove_account(id);
-      strcpy(tmp.password, _new_p);
-      as.insert_account(tmp);
+      as.resetpasswd(id, _new_p);
     } else {
       error("passwd: wrong password\n");
     }
@@ -178,30 +174,22 @@ void modify_book(const ISBN &isbn) {
 
 void modify_book(const Author &author) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
-  Book sel = bs.remove_book(curBook().isbn);
-  sel.author = author;
-  bs.insert_book(sel);
+  bs.modify_book(curBook().isbn, author);
 }
 
 void modify_book(const BookName &book_name) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
-  Book sel = bs.remove_book(curBook().isbn);
-  sel.name = book_name;
-  bs.insert_book(sel);
+  bs.modify_book(curBook().isbn, book_name);
 }
 
 void modify_book(double price_) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
-  Book sel = bs.remove_book(curBook().isbn);
-  sel.price = price_;
-  bs.insert_book(sel);
+  bs.modify_book(curBook().isbn, price_);
 }
 
 void modify_book(const KeyWord &key_word_) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
-  Book sel = bs.remove_book(curBook().isbn);
-  sel.key_word = key_word_;
-  bs.insert_book(sel);
+  bs.modify_book(curBook().isbn, key_word_);
 }
 
 void delete_account(const ID &id) {
