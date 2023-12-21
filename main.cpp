@@ -13,14 +13,14 @@ FinanceSys fs("finance");
 vector<pair<ID, ISBN>> login_list;
 
 int main() {
-  //ifstream cin;
-  //cin.open("bookstore-testcases/basic/testcase3.in", ifstream::in);
-  //freopen("bookstore-testcases/basic/testcase3.out", "w", stdout);
   while (true) {
     try {
       std::string input;
       getline(cin, input);
-      if (input.empty() || input == "quit" || input == "exit") break;
+      if (input.empty()) break;
+      regex exit_regex(R"( *exit *)");
+      regex quit_regex(R"( *quit *)");
+      if(regex_match(input, exit_regex) || regex_match(input, quit_regex)) break;
       parse_Command(input);
 
       /*Account ac((ID &) ("123"), "2005", "lfk", 1);
