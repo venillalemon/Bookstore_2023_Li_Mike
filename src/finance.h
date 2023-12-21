@@ -9,8 +9,6 @@
 
 using std::vector;
 
-const int block_length_finance = 250;
-
 enum Type {
   SALE, IMPORT
 };
