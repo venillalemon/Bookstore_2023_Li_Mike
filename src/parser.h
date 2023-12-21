@@ -19,11 +19,8 @@ void parse_Command(const string &input) {
   regex su_regex(R"(su (\w+)( (\w+))?( )?)");
   smatch match;
   if (regex_match(input, match, su_regex)) {
-    string userID = match.str(1);
-    std::string password = match.str(3);
-    ID user_id(userID.c_str());
     //cout << user_id << " " << password << '\n';
-    login(user_id, password.c_str());
+    login(ID(match.str(1).c_str()), match.str(3).c_str());
     return;
   }
 
@@ -35,12 +32,8 @@ void parse_Command(const string &input) {
   regex register_regex(R"(register (\w+) (\w+) ([^\s]+)( )?)");
   smatch register_match;
   if (regex_match(input, register_match, register_regex)) {
-    string userID = register_match.str(1);
-    string password = register_match.str(2);
-    string username = register_match.str(3);
-    ID user_id(userID.c_str());
     //cout << user_id << " " << password << " " << username << '\n';
-    reg(user_id, password.c_str(), username.c_str());
+    reg(ID(register_match.str(1).c_str()), register_match.str(2).c_str(), register_match.str(3).c_str());
     //login(user_id,password.c_str());
     return;
   }
@@ -48,12 +41,7 @@ void parse_Command(const string &input) {
   regex useradd_regex(R"(useradd (\w+) (\w+) (\d) ([^\s]+))");
   smatch useradd_match;
   if (regex_match(input, useradd_match, useradd_regex)) {
-    string userID = useradd_match.str(1);
-    string password = useradd_match.str(2);
-    string privilege = useradd_match.str(3);
-    string username = useradd_match.str(4);
-    ID user_id(userID.c_str());
-    useradd(user_id, password.c_str(), username.c_str(), std::stoi(privilege));
+    useradd(ID(useradd_match.str(1).c_str()), useradd_match.str(2).c_str(), useradd_match.str(4).c_str(), std::stoi(useradd_match.str(3)));
     //login(user_id,password.c_str());
     //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
     return;
@@ -62,11 +50,7 @@ void parse_Command(const string &input) {
   regex passwd_regex(R"(passwd (\w+)( (\w+))? (\w+))");
   smatch passwd_match;
   if (regex_match(input, passwd_match, passwd_regex)) {
-    string userID = passwd_match.str(1);
-    string old_password = passwd_match.str(3);
-    string new_password = passwd_match.str(4);
-    ID user_id(userID.c_str());
-    resetpasswd(user_id, new_password.c_str(), old_password.c_str());
+    resetpasswd(ID(passwd_match.str(1).c_str()), passwd_match.str(4).c_str(), passwd_match.str(3).c_str());
     //cout << user_id << " " << old_password << " " << new_password << '\n';
     return;
   }
@@ -74,10 +58,8 @@ void parse_Command(const string &input) {
   regex delete_regex(R"(delete (\w+))");
   smatch delete_match;
   if (regex_match(input, delete_match, delete_regex)) {
-    string userID = delete_match.str(1);
-    ID user_id(userID.c_str());//cout << user_id << '\n';
-    delete_account(user_id);
-
+    //cout << user_id << '\n';
+    delete_account(ID(delete_match.str(1).c_str()));
     return;
   }
 
@@ -91,24 +73,16 @@ void parse_Command(const string &input) {
       //cout << "show\n";
     } else {
       if (command[1] == 'I') {
-        string ISB = command.substr(6);
-        ISBN isbn(ISB.c_str());
-        find_book(isbn);
+        find_book(ISBN(command.substr(6).c_str()));
         //cout << "show_ISBN " << isbn << '\n';
       } else if (command[1] == 'n') {
-        string name = command.substr(7, command.size() - 8);
-        BookName book_name(name.c_str());
-        find_book(book_name);
+        find_book(BookName(command.substr(7, command.size() - 8).c_str()));
         //cout << "show_name " << book_name << '\n';
       } else if (command[1] == 'a') {
-        string author = command.substr(9, command.size() - 10);
-        Author auth(author.c_str());
-        find_book(auth);
+        find_book(Author(command.substr(9, command.size() - 10).c_str()));
         //cout << "show_author " << auth << '\n';
       } else if (command[1] == 'k') {
-        string keyword = command.substr(10, command.size() - 11);
-        KeyWord key_word(keyword.c_str());
-        find_book(key_word);
+        find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
         //cout << "show_keyword " << key_word << '\n';
       }
     }
@@ -118,10 +92,7 @@ void parse_Command(const string &input) {
   regex buy_regex(R"(buy (\S+) (\d+)( )?)");
   smatch buy_match;
   if (regex_match(input, buy_match, buy_regex)) {
-    string ISB = buy_match.str(1);
-    string quantity = buy_match.str(2);
-    ISBN isbn(ISB.c_str());
-    buy(isbn, std::stoi(quantity));
+    buy(ISBN(buy_match.str(1).c_str()), std::stoi(buy_match.str(2)));
     //cout << isbn << " " << quantity << '\n';
     return;
   }
@@ -129,9 +100,7 @@ void parse_Command(const string &input) {
   regex select_regex(R"(select (\S+))");
   smatch select_match;
   if (regex_match(input, select_match, select_regex)) {
-    string ISB = select_match.str(1);
-    ISBN isbn(ISB.c_str());
-    select(isbn);
+    select(ISBN(select_match.str(1).c_str()));
     //cout << isbn << '\n';
     return;
   }
@@ -139,9 +108,7 @@ void parse_Command(const string &input) {
   regex import_regex(R"(import (\d+) (\d+(.\d+)?))");
   smatch import_match;
   if (regex_match(input, import_match, import_regex)) {
-    string quantity = import_match.str(1);
-    string cost = import_match.str(2);
-    import(std::stoi(quantity), std::stod(cost));
+    import(std::stoi(import_match.str(1)), std::stod(import_match.str(2)));
     //cout << quantity << " " << cost << '\n';
     return;
   }
@@ -201,17 +168,14 @@ void parse_Command(const string &input) {
     if (book_name != BookName{}) modify_book(book_name);
     if (auth != Author{}) modify_book(auth);
 
-
     return;
   }
 
   regex show_finance_regex(R"(show finance( (\d+))?)");
   smatch show_finance_match;
   if (regex_match(input, show_finance_match, show_finance_regex)) {
-    string time = show_finance_match.str(2);
-
-    if (time.empty()) show_finance();
-    else show_finance(std::stoi(time));
+    if (show_finance_match.str(2).empty()) show_finance();
+    else show_finance(std::stoi(show_finance_match.str(2)));
     return;
   }
 
