@@ -25,7 +25,7 @@ public:
 class FinanceSys {
 public:
   string main_name{};
-  fstream file_main, file_aux;
+  fstream file_main, file_aux, file_his;
   int count = 0;// in main
   vector<pair<double, double>> v;// in aux, sale/cost
 
@@ -38,6 +38,8 @@ public:
       file_aux.close();
       init_main();
       init_v();
+      file_his.open(main_name + "_his", fstream::out | fstream::binary);
+      file_his.close();
     } else {
       file_main.close();
       file_aux.close();
@@ -103,6 +105,9 @@ public:
     if (FH.type == SALE) last.first += FH.price * FH.amount;
     else if (FH.type == IMPORT) last.second += FH.price * FH.amount;
     v.push_back(last);
+    file_his.open(main_name + "_his", fstream::app | fstream::binary);
+    file_his.write(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
+    file_his.close();
   }
 
   pair<double, double> get_finance() {
@@ -122,7 +127,23 @@ public:
 
   void print() {
     cout << "Finance: [count=" << count << "]\n";
+    cout<<std::fixed<<std::setprecision(2);
     for (auto &i: v) cout << "Sale: " << i.first << ", Cost: " << i.second << '\n';
+    cout<<std::defaultfloat;
+  }
+
+  void show() {
+    FinanceHistory FH{};
+    file_his.open(main_name + "_his", fstream::in | fstream::binary);
+    file_his.read(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
+    while (!file_his.eof()) {
+      cout << FH.user_id.id << "\t" << FH.book_id.id << "\t" << FH.amount << "\t";
+      cout << std::fixed << std::setprecision(2) << FH.price << "\t";
+      cout << std::defaultfloat;
+      if (FH.type == SALE) cout << "SALE\n";
+      else if (FH.type == IMPORT) cout << "IMPORT\n";
+      file_his.read(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
+    }
   }
 
 };

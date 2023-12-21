@@ -7,13 +7,6 @@ using std::cin;
 using std::string;
 using std::ifstream;
 
-char s[35];
-char passwd[35];
-char username[35];
-char isbn[25];
-string op;
-int val;
-
 AccountSys as("account");
 BookSys bs("book");
 FinanceSys fs("finance");
@@ -57,8 +50,6 @@ int main() {
       import(10, 105);
       buy((ISBN &) "1234", 5);*/
       //print();
-
-
 
     } catch (ErrorException &ex) {
       std::cout << "Invalid\n";
