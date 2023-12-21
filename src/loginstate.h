@@ -1,5 +1,6 @@
 #ifndef CODE_LOGINSTATE_H
 #define CODE_LOGINSTATE_H
+#pragma once
 
 #include "accounts.h"
 #include "books.h"
@@ -121,7 +122,7 @@ void select(const ISBN &isbn) {
   tmp.second = isbn;
   login_list.push_back(tmp);
   tmp = login_list.back();
-  cout << tmp.first.id << " selects " << tmp.second.id << '\n';
+  //cout << tmp.first.id << " selects " << tmp.second.id << '\n';
   Book b = bs.bookinfo(isbn);
   if (!(b.isbn == isbn)) {
     bs.insert_book(Book(isbn));
@@ -146,6 +147,7 @@ void import(int quantity, double tot_cost) {
 
 void buy(const ISBN &isbn, int quantity) {
   if (curPrivilege() < 1) error("buy: low privilege\n");
+  if (quantity <= 0) error("buy: invalid quantity\n");
   auto it = bs.list.upper_bound(isbn);
   it--;
   BookNode tmp;
@@ -157,6 +159,8 @@ void buy(const ISBN &isbn, int quantity) {
   double p = bs.bookinfo(isbn).price;
   FinanceHistory fh{id, isbn, quantity, p, SALE};
   fs.add_his(fh);
+  cout << std::fixed << std::setprecision(2) << p * quantity << '\n';
+  cout << std::defaultfloat;
 }
 
 void modify_book(const ISBN &isbn) {
@@ -228,6 +232,18 @@ void find_book(const Author &isbn) {
 void find_book(const KeyWord &isbn) {
   if (curPrivilege() < 1) error("show: low privilege\n");
   bs.find_book(isbn);
+}
+
+void show_finance(int count = -1) {
+  if (curPrivilege() < 7) error("show finance: low privilege\n");
+  pair<double, double> ans;
+  if (count == -1) { ans = fs.get_finance(); }
+  else if (count == 0) {
+    cout << '\n';
+    return;
+  } else ans = fs.get_finance(count);
+  cout << std::fixed << std::setprecision(2) << "+ " << ans.first << " - " << ans.second << '\n';
+  cout << std::defaultfloat;
 }
 
 #endif

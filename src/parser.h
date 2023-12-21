@@ -16,7 +16,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex su_regex(R"(su (\w+)( (\w+))?)");
+  regex su_regex(R"(su (\w+)( (\w+))?( )?)");
   smatch match;
   if (regex_match(input, match, su_regex)) {
     string userID = match.str(1);
@@ -32,7 +32,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex register_regex(R"(register (\w+) (\w+) ([^\s]+))");
+  regex register_regex(R"(register (\w+) (\w+) ([^\s]+)( )?)");
   smatch register_match;
   if (regex_match(input, register_match, register_regex)) {
     string userID = register_match.str(1);
@@ -66,7 +66,7 @@ void parse_Command(const string &input) {
     string old_password = passwd_match.str(3);
     string new_password = passwd_match.str(4);
     ID user_id(userID.c_str());
-    resetpasswd(user_id, new_password.c_str(),old_password.c_str());
+    resetpasswd(user_id, new_password.c_str(), old_password.c_str());
     //cout << user_id << " " << old_password << " " << new_password << '\n';
     return;
   }
@@ -115,7 +115,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex buy_regex(R"(buy (\w+) (\d+))");
+  regex buy_regex(R"(buy (\w+) (\d+)( )?)");
   smatch buy_match;
   if (regex_match(input, buy_match, buy_regex)) {
     string ISB = buy_match.str(1);
@@ -166,41 +166,40 @@ void parse_Command(const string &input) {
       string value = tok_match.str(3);
       //cout << command << " " << value << "\n";
       if (command == "ISBN") {
-        isbn=ISBN(value.c_str());
+        isbn = ISBN(value.c_str());
       } else if (command == "name") {
         value = value.substr(1, value.size() - 2);
-        book_name=BookName(value.c_str());
+        book_name = BookName(value.c_str());
       } else if (command == "author") {
         value = value.substr(1, value.size() - 2);
-        auth=Author(value.c_str());
+        auth = Author(value.c_str());
       } else if (command == "keyword") {
         value = value.substr(1, value.size() - 2);
-        key_word=KeyWord (value.c_str());
+        key_word = KeyWord(value.c_str());
       } else if (command == "price") {
-        price=std::stod(value);
+        price = std::stod(value);
       }
     }
-    if(key_word!=KeyWord{}) {
-      vector<KeyWord>kl;
+    if (key_word != KeyWord{}) {
+      vector<KeyWord> kl;
       char key_list[70];
       strcpy(key_list, key_word.id);
       char t[70];
       char *token = strtok(key_list, "|");
       while (token != nullptr) {
         strcpy(t, token);
-        for(auto i:kl){
-          if(i==KeyWord(t)) error("modify: repeated keyword\n");
+        for (auto i: kl) {
+          if (i == KeyWord(t)) error("modify: repeated keyword\n");
         }
         kl.emplace_back(t);
         token = strtok(nullptr, "|");
       }
       modify_book(key_word);
     }
-    if(price!=-1) modify_book(price);
-    if(isbn!=ISBN{}) modify_book(isbn);
-    if(book_name!=BookName{}) modify_book(book_name);
-    if(auth!=Author{}) modify_book(auth);
-
+    if (price != -1) modify_book(price);
+    if (isbn != ISBN{}) modify_book(isbn);
+    if (book_name != BookName{}) modify_book(book_name);
+    if (auth != Author{}) modify_book(auth);
 
 
     return;
@@ -210,8 +209,9 @@ void parse_Command(const string &input) {
   smatch show_finance_match;
   if (regex_match(input, show_finance_match, show_finance_regex)) {
     string time = show_finance_match.str(2);
-    //show_finance(std::stoi(time));
-    //cout << time << '\n';
+
+    if (time.empty()) show_finance();
+    else show_finance(std::stoi(time));
     return;
   }
 

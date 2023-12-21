@@ -386,7 +386,7 @@ public:
     }
   }
 
-  void show(){
+  void show() {
     BookNode n;
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {
@@ -406,7 +406,8 @@ public:
   }
 
   void find_book(const ISBN &isbn) {
-    bookinfo(isbn).show();
+    if (bookinfo(isbn).isbn == isbn) bookinfo(isbn).show();
+    else cout << '\n';
   }
 
   void find_book(const BookName &book_name) {
@@ -415,9 +416,11 @@ public:
     for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void find_book(const Author &author) {
@@ -426,9 +429,11 @@ public:
     for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void find_book(const KeyWord &key_word) {
@@ -437,9 +442,11 @@ public:
     for (it = kw.lower_bound(key_word); it != kw.upper_bound(key_word); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void insert_book(const Book &bo) {
@@ -453,7 +460,7 @@ public:
 
     if (it == list.begin()) {
       if (lengthoflist == 2) {
-        cout << "first node\n";
+        //cout << "first node\n";
         first_node(bo);
       } else {
         BookNode next_node;
