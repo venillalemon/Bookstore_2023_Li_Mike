@@ -113,11 +113,7 @@ void select(const ISBN &isbn) {
     error("select: low privilege\n");
   }
   if (login_list.empty()) { return; }
-  auto tmp = login_list.back();
-  login_list.pop_back();
-  tmp.second = isbn;
-  login_list.push_back(tmp);
-  tmp = login_list.back();
+  login_list.back().second=isbn;
   //cout << tmp.first.id << " selects " << tmp.second.id << '\n';
   Book b = bs.bookinfo(isbn);
   if (!(b.isbn == isbn)) {

@@ -9,6 +9,8 @@ using std::regex;
 using std::regex_match;
 using std::smatch;
 
+typedef m_string<100> Command;
+
 void parse_Command(const string &input) {
 
   if (input == "print") {
@@ -29,45 +31,58 @@ void parse_Command(const string &input) {
     return;
   }
 
+  if (input == "log") {
+    //log();
+    //cout << "log\n";
+    return;
+  }
+
+  if (input == "report finance") {
+    if(curPrivilege()<7)error("report finance: low privilege\n");
+    fs.show();
+    return;
+  }
+
+  if (input == "report employee") {
+    //as.print();
+    //cout << "employee\n";
+    return;
+  }
+
   regex register_regex(R"(register (\w+) (\w+) ([^\s]+)( )?)");
-  smatch register_match;
-  if (regex_match(input, register_match, register_regex)) {
+  if (regex_match(input, match, register_regex)) {
     //cout << user_id << " " << password << " " << username << '\n';
-    reg(ID(register_match.str(1).c_str()), register_match.str(2).c_str(), register_match.str(3).c_str());
+    reg(ID(match.str(1).c_str()), match.str(2).c_str(), match.str(3).c_str());
     //login(user_id,password.c_str());
     return;
   }
 
   regex useradd_regex(R"(useradd (\w+) (\w+) (\d) ([^\s]+))");
-  smatch useradd_match;
-  if (regex_match(input, useradd_match, useradd_regex)) {
-    useradd(ID(useradd_match.str(1).c_str()), useradd_match.str(2).c_str(), useradd_match.str(4).c_str(), std::stoi(useradd_match.str(3)));
+  if (regex_match(input, match, useradd_regex)) {
+    useradd(ID(match.str(1).c_str()), match.str(2).c_str(), match.str(4).c_str(), std::stoi(match.str(3)));
     //login(user_id,password.c_str());
     //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
     return;
   }
 
   regex passwd_regex(R"(passwd (\w+)( (\w+))? (\w+))");
-  smatch passwd_match;
-  if (regex_match(input, passwd_match, passwd_regex)) {
-    resetpasswd(ID(passwd_match.str(1).c_str()), passwd_match.str(4).c_str(), passwd_match.str(3).c_str());
+  if (regex_match(input, match, passwd_regex)) {
+    resetpasswd(ID(match.str(1).c_str()), match.str(4).c_str(), match.str(3).c_str());
     //cout << user_id << " " << old_password << " " << new_password << '\n';
     return;
   }
 
   regex delete_regex(R"(delete (\w+))");
-  smatch delete_match;
-  if (regex_match(input, delete_match, delete_regex)) {
+  if (regex_match(input, match, delete_regex)) {
     //cout << user_id << '\n';
-    delete_account(ID(delete_match.str(1).c_str()));
+    delete_account(ID(match.str(1).c_str()));
     return;
   }
 
   regex show_regex(
           R"(^show( (-ISBN=[\x20-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"))?)");
-  smatch show_match;
-  if (regex_match(input, show_match, show_regex)) {
-    string command = show_match.str(2);
+  if (regex_match(input, match, show_regex)) {
+    string command = match.str(2);
     if (command.empty()) {
       bs.show();
       //cout << "show\n";
@@ -90,33 +105,29 @@ void parse_Command(const string &input) {
   }
 
   regex buy_regex(R"(buy (\S+) (\d+)( )?)");
-  smatch buy_match;
-  if (regex_match(input, buy_match, buy_regex)) {
-    buy(ISBN(buy_match.str(1).c_str()), std::stoi(buy_match.str(2)));
+  if (regex_match(input, match, buy_regex)) {
+    buy(ISBN(match.str(1).c_str()), std::stoi(match.str(2)));
     //cout << isbn << " " << quantity << '\n';
     return;
   }
 
   regex select_regex(R"(select (\S+))");
-  smatch select_match;
-  if (regex_match(input, select_match, select_regex)) {
-    select(ISBN(select_match.str(1).c_str()));
+  if (regex_match(input, match, select_regex)) {
+    select(ISBN(match.str(1).c_str()));
     //cout << isbn << '\n';
     return;
   }
 
   regex import_regex(R"(import (\d+) (\d+(.\d+)?))");
-  smatch import_match;
-  if (regex_match(input, import_match, import_regex)) {
-    import(std::stoi(import_match.str(1)), std::stod(import_match.str(2)));
+  if (regex_match(input, match, import_regex)) {
+    import(std::stoi(match.str(1)), std::stod(match.str(2)));
     //cout << quantity << " " << cost << '\n';
     return;
   }
 
   regex modify_regex(
           R"(modify( (-ISBN=[^\s]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"|-price=\d+(.\d+)?))+)");
-  smatch modify_match;
-  if (regex_match(input, modify_match, modify_regex)) {
+  if (regex_match(input, match, modify_regex)) {
     ISBN isbn{};
     BookName book_name{};
     Author auth{};
@@ -172,30 +183,13 @@ void parse_Command(const string &input) {
   }
 
   regex show_finance_regex(R"(show finance( (\d+))?)");
-  smatch show_finance_match;
-  if (regex_match(input, show_finance_match, show_finance_regex)) {
-    if (show_finance_match.str(2).empty()) show_finance();
-    else show_finance(std::stoi(show_finance_match.str(2)));
+  if (regex_match(input, match, show_finance_regex)) {
+    if (match.str(2).empty()) show_finance();
+    else show_finance(std::stoi(match.str(2)));
     return;
   }
 
-  if (input == "log") {
-    //log();
-    //cout << "log\n";
-    return;
-  }
 
-  if (input == "report finance") {
-    fs.print();
-    //cout << "finance\n";
-    return;
-  }
-
-  if (input == "report employee") {
-    //as.print();
-    //cout << "employee\n";
-    return;
-  }
 
   error("Invalid: no match\n");
 
