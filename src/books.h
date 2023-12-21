@@ -4,11 +4,12 @@
 
 #include <iostream>
 #include <fstream>
-#include <stack>
+#include <vector>
 #include <unordered_map>
 #include <map>
 #include <set>
 #include <cstring>
+#include <iomanip>
 #include "error.h"
 
 using std::cout;
@@ -17,7 +18,7 @@ using std::string;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
-using std::stack;
+using std::vector;
 using std::set;
 using std::unordered_map;
 using std::map;
@@ -34,7 +35,7 @@ public:
 
   m_string() = default;
 
-  explicit m_string(char _key[]) {
+  explicit m_string(const char _key[]) {
     strcpy(id, _key);
   }
 
@@ -69,8 +70,6 @@ typedef m_string<68> BookName;
 typedef m_string<69> Author;
 typedef m_string<70> KeyWord;
 
-extern stack<pair<ID, ISBN>> login_list;
-
 class Book {
 public:
   ISBN isbn{};
@@ -96,7 +95,9 @@ public:
 
   void show() const {
     cout << isbn << '\t' << name << '\t' << author << '\t';
-    cout << key_word << '\t' << price << '\t' << storage << '\n';
+    cout << key_word << '\t';
+    cout << std::fixed << std::setprecision(2) << price;
+    cout << '\t' << std::setprecision(0) << storage << '\n';
   }
 };
 
@@ -125,6 +126,19 @@ public:
       cout << " " << data[i].author << " ";
       cout << data[i].key_word << " ";
       cout << data[i].price << " " << data[i].storage << '\n';
+    }
+  }
+
+  void show() {
+    if (pos < 3) {
+      return;
+    }
+    for (int i = 0; i < size; ++i) {
+      cout << data[i].isbn << "\t" << data[i].name;
+      cout << "\t" << data[i].author << "\t";
+      cout << data[i].key_word << "\t";
+      cout << std::fixed << std::setprecision(2) << data[i].price;
+      cout << "\t" << std::setprecision(0) << data[i].storage << '\n';
     }
   }
 
@@ -372,6 +386,17 @@ public:
     }
   }
 
+  void show() {
+    BookNode n;
+    file_main.open(main_name, std::ifstream::in);
+    for (auto i: list) {
+      file_main.seekg((i.second - 1) * sizeof(BookNode));
+      file_main.read(reinterpret_cast<char *> (&n), sizeof(BookNode));
+      n.show();
+    }
+    file_main.close();
+  }
+
   Book bookinfo(const ISBN &isbn) {
     auto it = list.upper_bound(isbn);
     it--;
@@ -381,7 +406,8 @@ public:
   }
 
   void find_book(const ISBN &isbn) {
-    bookinfo(isbn).show();
+    if (bookinfo(isbn).isbn == isbn) bookinfo(isbn).show();
+    else cout << '\n';
   }
 
   void find_book(const BookName &book_name) {
@@ -390,9 +416,11 @@ public:
     for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void find_book(const Author &author) {
@@ -401,9 +429,11 @@ public:
     for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void find_book(const KeyWord &key_word) {
@@ -412,9 +442,11 @@ public:
     for (it = kw.lower_bound(key_word); it != kw.upper_bound(key_word); ++it) {
       v.insert(it->second);
     }
-    for (const auto &t: v) {
-      bookinfo(t).show();
-    }
+    if (v.empty()) cout << '\n';
+    else
+      for (const auto &t: v) {
+        bookinfo(t).show();
+      }
   }
 
   void insert_book(const Book &bo) {
@@ -428,7 +460,7 @@ public:
 
     if (it == list.begin()) {
       if (lengthoflist == 2) {
-        cout << "first node\n";
+        //cout << "first node\n";
         first_node(bo);
       } else {
         BookNode next_node;
@@ -438,7 +470,7 @@ public:
         next_node.insert(bo);
         write_main(next_node, pos);
         list.insert(pair<ISBN, int>(next_node.first, pos));
-        if (next_node.size >= block_len - 20) {
+        if (next_node.size >= block_len_book - 20) {
           divide_node(pos);
         }
       }
@@ -447,7 +479,7 @@ public:
       read_main(next_node, (*it).second);
       next_node.insert(bo);
       write_main(next_node, (*it).second);
-      if (next_node.size >= block_len - 20) {
+      if (next_node.size >= block_len_book - 20) {
         divide_node((*it).second);
       }
     }

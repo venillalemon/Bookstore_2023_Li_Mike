@@ -1,5 +1,5 @@
-#ifndef _ACCOUNTS_H
-#define _ACCOUNTS_H
+#ifndef CODE_ACCOUNTS_H
+#define CODE_ACCOUNTS_H
 #pragma once
 
 #include <iostream>
@@ -8,11 +8,12 @@
 #include <map>
 #include <cstring>
 #include <stack>
-#include "error.h"
+#include "books.h"
 
 using std::cout;
 using std::string;
 using std::fstream;
+using std::ostream;
 using std::ifstream;
 using std::ofstream;
 using std::stack;
@@ -23,37 +24,13 @@ using std::pair;
 
 const int block_len = 250; // length of block
 
-class ID {
-public:
-  char id[35] = "";
-
-  ID() = default;
-
-  explicit ID(char _key[]) {
-    strcpy(id, _key);
-  }
-
-  bool operator==(const ID &rhs) const {
-    return (strcmp(id, rhs.id) == 0);
-  }
-
-  bool operator<(const ID &rhs) const {
-    return (strcmp(id, rhs.id) < 0);
-  }
-
-  ID &operator=(const ID &rhs) {
-    if (&rhs == this) return *this;
-    strcpy(id, rhs.id);
-    return *this;
-  }
-
-};
+typedef m_string<35> ID;
 
 class Account {
 
 public:
 
-  ID user_id;
+  ID user_id{};
   char password[35]{};
   char user_name[35]{};
   int privilege{};
@@ -123,7 +100,7 @@ public:
       if (found) data[i] = data[i + 1];
     }
     if (found) size--;
-    else error("account does not exist\n");
+    else error("account does not exist\n");// may invoke an error
     first = data[0].user_id;
   }
 
@@ -138,7 +115,7 @@ public:
     }
     if (data[l].user_id == id) return data[l];
     else {
-      cout<<"not found\n";
+      //cout<<"not found\n";
       return {};
     }
   }
@@ -281,15 +258,19 @@ public:
     it--;
 
     if (it == list.begin()) {
-      AccountNode next_node;
-      int pos = (*last).second;
-      read_main(next_node, pos);
-      list.erase(next_node.first);
-      next_node.insert(ac);
-      write_main(next_node, pos);
-      list.insert(pair<ID, int>(next_node.first, pos));
-      if (next_node.size >= block_len - 20) {
-        divide_node(pos);
+      if(lengthoflist==2){
+        first_node(ac);
+      } else {
+        AccountNode next_node;
+        int pos = (*last).second;
+        read_main(next_node, pos);
+        list.erase(next_node.first);
+        next_node.insert(ac);
+        write_main(next_node, pos);
+        list.insert(pair<ID, int>(next_node.first, pos));
+        if (next_node.size >= block_len - 20) {
+          divide_node(pos);
+        }
       }
     } else {
       AccountNode next_node;
@@ -303,6 +284,14 @@ public:
     //print();
   }
 
+  void first_node(const Account&ac) {
+    AccountNode new_node(ac.user_id, lengthofnodes + 1);
+    new_node.size = 1;
+    new_node.data[0] = ac;
+    list.insert(pair<ID, int>(ac.user_id, lengthofnodes + 1));
+    append_main(new_node);
+  }
+  
   //divide the node at pos into 2 parts, the other part is at the tail
   void divide_node(int pos) {
     AccountNode node;
@@ -327,8 +316,10 @@ public:
     int pos = (*del).second;
     if (pos != 1 && pos != 2) {
       read_main(node, pos);
-      list.erase(node.first);
+      ID fi=node.first;
       node.remove(id);
+      list.erase(fi);
+      //cout<<"fdg\n";
       write_main(node, pos);
       if (node.size != 0) list.insert(pair<ID, int>(node.first, node.pos));
       else {
