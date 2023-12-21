@@ -59,6 +59,7 @@ void parse_Command(const string &input) {
 
   regex useradd_regex(R"(useradd (\w+) (\w+) (\d) ([^\s]+))");
   if (regex_match(input, match, useradd_regex)) {
+    if(std::stoi(match.str(3))!=1&&std::stoi(match.str(3))!=3&&std::stoi(match.str(3))!=7) error("useradd: wrong privilege\n");
     useradd(ID(match.str(1).c_str()), match.str(2).c_str(), match.str(4).c_str(), std::stoi(match.str(3)));
     //login(user_id,password.c_str());
     //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
