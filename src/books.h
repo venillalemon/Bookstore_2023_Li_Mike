@@ -488,41 +488,85 @@ public:
 
   void find_book(const BookName &book_name) {
     multimap<BookName, ISBN>::iterator it;
-    set<ISBN> v;
+    vector<ISBN> v;
     for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
-      v.insert(it->second);
+      v.push_back(it->second);
     }
+    sort(v.begin(),v.end());
     if (v.empty()) cout << '\n';
-    else
-      for (const auto &t: v) {
-        bookinfo(t).show();
+    else {
+      auto beg=list.upper_bound(*v.begin());
+      beg--;
+      auto end=list.upper_bound(*v.rbegin());
+      int cur=0;
+      BookNode tmp;
+      for(auto i=beg;i!=end;++i){
+        read_main(tmp,(*i).second);
+        for(int j=0;j<tmp.size;++j){
+          if(tmp.data[j].isbn==v[cur]){
+            tmp.data[j].show();
+            cur++;
+            if(cur==v.size()) return;
+          }
+        }
       }
+
+    }
   }
 
   void find_book(const Author &author) {
     multimap<Author, ISBN>::iterator it;
-    set<ISBN> v;
+    vector<ISBN> v;
     for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
-      v.insert(it->second);
+      v.push_back(it->second);
     }
+    sort(v.begin(),v.end());
     if (v.empty()) cout << '\n';
-    else
-      for (const auto &t: v) {
-        bookinfo(t).show();
+    else {
+      auto beg=list.upper_bound(*v.begin());
+      beg--;
+      auto end=list.upper_bound(*v.rbegin());
+      int cur=0;
+      BookNode tmp;
+      for(auto i=beg;i!=end;++i){
+        read_main(tmp,(*i).second);
+        for(int j=0;j<tmp.size;++j){
+          if(tmp.data[j].isbn==v[cur]){
+            tmp.data[j].show();
+            cur++;
+            if(cur==v.size()) return;
+          }
+        }
       }
+    }
   }
 
   void find_book(const KeyWord &key_word) {
     multimap<KeyWord, ISBN>::iterator it;
-    set<ISBN> v;
+    vector<ISBN> v;
     for (it = kw.lower_bound(key_word); it != kw.upper_bound(key_word); ++it) {
-      v.insert(it->second);
+      v.push_back(it->second);
     }
+    sort(v.begin(),v.end());
     if (v.empty()) cout << '\n';
-    else
-      for (const auto &t: v) {
-        bookinfo(t).show();
+    else {
+      auto beg=list.upper_bound(*v.begin());
+      beg--;
+      auto end=list.upper_bound(*v.rbegin());
+      int cur=0;
+      BookNode tmp;
+      for(auto i=beg;i!=end;++i){
+        read_main(tmp,(*i).second);
+        for(int j=0;j<tmp.size;++j){
+          if(tmp.data[j].isbn==v[cur]){
+            tmp.data[j].show();
+            cur++;
+            if(cur==v.size()) return;
+          }
+        }
       }
+    }
+
   }
 
   void insert_book(const Book &bo) {
