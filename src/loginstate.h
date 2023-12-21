@@ -114,7 +114,7 @@ void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] =
 
 void select(const ISBN &isbn) {
   if (curPrivilege() < 3) {
-    error("select: low privilege");
+    error("select: low privilege\n");
   }
   if (login_list.empty()) { return; }
   auto tmp = login_list.back();

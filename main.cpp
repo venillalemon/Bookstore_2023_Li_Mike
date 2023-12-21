@@ -61,7 +61,7 @@ int main() {
 
 
     } catch (ErrorException &ex) {
-      std::cout << ex.getMessage();
+      std::cout << "Invalid\n";
     }
   }
   as.write_aux();

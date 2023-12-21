@@ -258,15 +258,19 @@ public:
     it--;
 
     if (it == list.begin()) {
-      AccountNode next_node;
-      int pos = (*last).second;
-      read_main(next_node, pos);
-      list.erase(next_node.first);
-      next_node.insert(ac);
-      write_main(next_node, pos);
-      list.insert(pair<ID, int>(next_node.first, pos));
-      if (next_node.size >= block_len - 20) {
-        divide_node(pos);
+      if(lengthoflist==2){
+        first_node(ac);
+      } else {
+        AccountNode next_node;
+        int pos = (*last).second;
+        read_main(next_node, pos);
+        list.erase(next_node.first);
+        next_node.insert(ac);
+        write_main(next_node, pos);
+        list.insert(pair<ID, int>(next_node.first, pos));
+        if (next_node.size >= block_len - 20) {
+          divide_node(pos);
+        }
       }
     } else {
       AccountNode next_node;
@@ -280,6 +284,14 @@ public:
     //print();
   }
 
+  void first_node(const Account&ac) {
+    AccountNode new_node(ac.user_id, lengthofnodes + 1);
+    new_node.size = 1;
+    new_node.data[0] = ac;
+    list.insert(pair<ID, int>(ac.user_id, lengthofnodes + 1));
+    append_main(new_node);
+  }
+  
   //divide the node at pos into 2 parts, the other part is at the tail
   void divide_node(int pos) {
     AccountNode node;

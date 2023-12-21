@@ -115,7 +115,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex buy_regex(R"(buy (\w+) (\d+)( )?)");
+  regex buy_regex(R"(buy (\S+) (\d+)( )?)");
   smatch buy_match;
   if (regex_match(input, buy_match, buy_regex)) {
     string ISB = buy_match.str(1);
@@ -126,7 +126,7 @@ void parse_Command(const string &input) {
     return;
   }
 
-  regex select_regex(R"(select (\w+))");
+  regex select_regex(R"(select (\S+))");
   smatch select_match;
   if (regex_match(input, select_match, select_regex)) {
     string ISB = select_match.str(1);
