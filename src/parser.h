@@ -3,198 +3,353 @@
 #pragma once
 
 #include <regex>
+#include <sstream>
 #include "loginstate.h"
 
 using std::regex;
 using std::regex_match;
 using std::smatch;
+using std::stringstream;
 
 typedef m_string<100> Command;
 
 void parse_Command(const string &input) {
+
+  regex inc_regex(R"([\v\r\t])");
+  regex ID_regex(R"(\w+)");//for userid, password
+  regex name_regex(R"(\S+)");//for username, book name, author, keyword
+  regex show_regex(R"(-ISBN=[\x21-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+")");
+
+  smatch match;
+  if (regex_search(input, match, inc_regex)) {
+    error("Invalid: invisible har\n");
+  }
+
+  stringstream ss(input);
 
   if (input == "print") {
     print();
     return;
   }
 
-  regex su_regex(R"( *su +(\w+)( +(\w+))? *)");
-  smatch match;
-  if (regex_match(input, match, su_regex)) {
-    //cout << user_id << " " << password << '\n';
-    login(ID(match.str(1).c_str()), match.str(3).c_str());
-    return;
-  }
-
-
-  regex logout_regex(R"( *logout *)");
-  if (regex_match(input, match, logout_regex)) {
+  string op;
+  ss >> op;
+  if (ss.fail()) error("not enough token\n");
+  if (op == "logout") {
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
     logout();
     return;
-  }
-
-  regex log_regex(R"( *log *)");
-  if(regex_match(input,match,log_regex)){
+  } else if (op == "log") {
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
     //log();
     return;
-  }
+  } else if (op == "report") {
+    ss >> op;
+    if (ss.fail()) error("not enough token\n");
+    if (op == "finance") {
+      ss >> op;
 
-  regex rf_regex(R"( *report +finance *)");
-  if (regex_match(input, match, rf_regex)) {
-    if(curPrivilege()<7) error("report finance: low privilege\n");
-    fs.show();
-    return;
-  }
-
-  regex re_regex(R"( *report +employee *)");
-  if (regex_match(input, match, re_regex)) {
-    //as.print();
-    //cout << "employee\n";
-    return;
-  }
-
-  regex register_regex(R"( *register +(\w+) +(\w+) +([^\s]+) *)");
-  if (regex_match(input, match, register_regex)) {
-    //cout << user_id << " " << password << " " << username << '\n';
-    reg(ID(match.str(1).c_str()), match.str(2).c_str(), match.str(3).c_str());
-    //login(user_id,password.c_str());
-    return;
-  }
-
-  regex useradd_regex(R"( *useradd +(\w+) +(\w+) +(\d) +([^\s]+ *))");
-  if (regex_match(input, match, useradd_regex)) {
-    if(std::stoi(match.str(3))!=1&&std::stoi(match.str(3))!=3&&std::stoi(match.str(3))!=7) error("useradd: wrong privilege\n");
-    useradd(ID(match.str(1).c_str()), match.str(2).c_str(), match.str(4).c_str(), std::stoi(match.str(3)));
-    //login(user_id,password.c_str());
-    //cout << user_id << " " << password << " " << privilege << " " << username << '\n';
-    return;
-  }
-
-  regex passwd_regex(R"( *passwd +(\w+)( +(\w+))? +(\w+) *)");
-  if (regex_match(input, match, passwd_regex)) {
-    resetpasswd(ID(match.str(1).c_str()), match.str(4).c_str(), match.str(3).c_str());
-    //cout << user_id << " " << old_password << " " << new_password << '\n';
-    return;
-  }
-
-  regex delete_regex(R"( *delete +(\w+) *)");
-  if (regex_match(input, match, delete_regex)) {
-    //cout << user_id << '\n';
-    delete_account(ID(match.str(1).c_str()));
-    return;
-  }
-
-  regex show_regex(
-          R"( *show( +(-ISBN=[\x20-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"))? *)");
-  if (regex_match(input, match, show_regex)) {
-    string command = match.str(2);
-    if (command.empty()) {
-      bs.show();
-      //cout << "show\n";
-    } else {
-      if (command[1] == 'I') {
-        find_book(ISBN(command.substr(6).c_str()));
-        //cout << "show_ISBN " << isbn << '\n';
-      } else if (command[1] == 'n') {
-        find_book(BookName(command.substr(7, command.size() - 8).c_str()));
-        //cout << "show_name " << book_name << '\n';
-      } else if (command[1] == 'a') {
-        find_book(Author(command.substr(9, command.size() - 10).c_str()));
-        //cout << "show_author " << auth << '\n';
-      } else if (command[1] == 'k') {
-        find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
-        //cout << "show_keyword " << key_word << '\n';
-      }
+      if (!ss.fail()) error("exceeded token\n");
+      if (curPrivilege() < 7) error("report finance: low privilege\n");
+      fs.show();
+      return;
+    } else if (op == "employee") {
+      ss >> op;
+      if (!ss.fail()) error("exceeded token\n");
+      //as.print();
+      //cout << "employee\n";
+      return;
     }
+  } else if (op == "delete") {
+    ss >> op;
+    if (ss.fail()) error("not enough token\n");
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid ID\n");
+      return;
+    }
+    ID id(op.c_str());
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
+    delete_account(id);
     return;
-  }
-
-  regex buy_regex(R"( *buy +(\S+) +(\d+) *)");
-  if (regex_match(input, match, buy_regex)) {
-    buy(ISBN(match.str(1).c_str()), std::stoi(match.str(2)));
-    //cout << isbn << " " << quantity << '\n';
-    return;
-  }
-
-  regex select_regex(R"( *select +(\S+) *)");
-  if (regex_match(input, match, select_regex)) {
-    select(ISBN(match.str(1).c_str()));
+  } else if (op == "select") {
+    ss >> op;
+    if (ss.fail()) error("not enough token\n");
+    if (!regex_match(op, match, name_regex)) {
+      error("Invalid ID\n");
+      return;
+    }
+    ISBN isbn(op.c_str());
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
+    select(ISBN(isbn));
     //cout << isbn << '\n';
     return;
-  }
-
-  regex import_regex(R"( *import +(\d+) +(\d+(.\d+)?) *)");
-  if (regex_match(input, match, import_regex)) {
-    import(std::stoi(match.str(1)), std::stod(match.str(2)));
-    //cout << quantity << " " << cost << '\n';
-    return;
-  }
-
-  regex modify_regex(
-          R"( *modify( +(-ISBN=[^\s]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"|-price=\d+(.\d+)?))+ *)");
-  if (regex_match(input, match, modify_regex)) {
-    ISBN isbn{};
-    BookName book_name{};
-    Author auth{};
-    KeyWord key_word{};
-    double price = -1;
-    string tok = input.substr(7);
-    //cout << tok << "\n";
-    smatch tok_match;
-    regex pattern(R"((-(ISBN|name|author|keyword|price))=([^\s]+))");
-    string::const_iterator citer = tok.cbegin();
-    while (regex_search(citer, tok.cend(), tok_match, pattern)) {
-      citer = tok_match[0].second;
-      string command = tok_match.str(2);
-      string value = tok_match.str(3);
-      //cout << command << " " << value << "\n";
-      if (command == "ISBN") {
-        isbn = ISBN(value.c_str());
-      } else if (command == "name") {
-        value = value.substr(1, value.size() - 2);
-        book_name = BookName(value.c_str());
-      } else if (command == "author") {
-        value = value.substr(1, value.size() - 2);
-        auth = Author(value.c_str());
-      } else if (command == "keyword") {
-        value = value.substr(1, value.size() - 2);
-        key_word = KeyWord(value.c_str());
-      } else if (command == "price") {
-        price = std::stod(value);
-      }
+  } else if (op == "buy") {
+    ss >> op;
+    if (ss.fail()) error("not enough token\n");
+    if (!regex_match(op, match, name_regex)) {
+      error("Invalid ISBN\n");
+      return;
     }
-    if (key_word != KeyWord{}) {
-      vector<KeyWord> kl;
-      char key_list[70];
-      strcpy(key_list, key_word.id);
-      char t[70];
-      char *token = strtok(key_list, "|");
-      while (token != nullptr) {
-        strcpy(t, token);
-        for (auto i: kl) {
-          if (i == KeyWord(t)) error("modify: repeated keyword\n");
+    ISBN isbn(op.c_str());
+    string amount;
+    ss >> amount;
+    if (ss.fail()) error("not enough token\n");
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
+    if (std::stod(amount) != std::stoi(amount)) error("buy: invalid quantity\n");
+    // can throw a std::invalid_argument if amount="4.5"
+    buy(isbn, std::stoi(amount));
+    return;
+  } else if (op == "import") {
+    string amount, cost;
+    ss >> amount >> cost;
+    if (ss.fail()) error("not enough token\n");
+    ss >> op;
+    if (!ss.fail()) error("exceeded token\n");
+    int a = std::stoi(amount);
+    double c = std::stod(cost);
+    if (std::stod(amount) != a) error("import: invalid quantity\n");
+    // can throw a std::invalid_argument if amount="4.5"
+    import(a, c);
+    return;
+  } else if (op == "su") {
+    ss >> op;
+    if (ss.fail()) error("not enough token\n");
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid ID\n");
+      return;
+    }
+    ID id(op.c_str());
+    ss >> op;
+    string passwd;
+    if (!ss.fail()) {
+      passwd = op;
+      if (!regex_match(op, match, ID_regex)) {
+        error("Invalid password\n");
+        return;
+      }
+      ss >> op;
+      if (!ss.fail()) error("exceeded token\n");
+      login(id, passwd.c_str());
+      return;
+    } else {
+      passwd = "";
+      login(id);
+      return;
+    }
+  } else if (op == "register") {
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid ID\n");
+      return;
+    }
+    ID id(op.c_str());
+
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid password\n");
+      return;
+    }
+    string password = op;
+
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, name_regex)) {
+      error("Invalid name\n");
+      return;
+    }
+    string name = op;
+    ss >> op;
+    if (!ss.fail()) {
+      error("exceeded token\n");
+      return;
+    }
+    reg(id, password.c_str(), name.c_str());
+    return;
+  } else if (op == "useradd") {
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid ID\n");
+      return;
+    }
+    ID id(op.c_str());
+
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, ID_regex)) {
+      error("Invalid password\n");
+      return;
+    }
+    string password = op;
+
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    int pri = std::stoi(op);
+    if (!(pri == 3 || pri == 1 || pri == 7)) {
+      error("useradd: wrong privilege\n");
+      return;
+    }
+
+    ss >> op;
+    if (ss.fail()) {
+      error("not enough token\n");
+      return;
+    }
+    if (!regex_match(op, match, name_regex)) {
+      error("Invalid username\n");
+      return;
+    }
+    string name = op;
+
+    ss >> op;
+    if (!ss.fail()) {
+      error("exceeded token\n");
+      return;
+    }
+    useradd(id, password.c_str(), name.c_str(), pri);
+    return;
+  } else if (op == "passwd") {
+    ss >> op;
+    vector<string> arr;
+    while (!ss.fail()) {
+      if (!regex_match(op, match, ID_regex)) {
+        error("Invalid ID/password\n");
+        return;
+      }
+      arr.push_back(op);
+      ss >> op;
+    }
+    if (arr.size() == 2) {
+      resetpasswd(ID(arr[0].c_str()), arr[1].c_str());
+    } else if (arr.size() == 3) {
+      resetpasswd(ID(arr[0].c_str()), arr[2].c_str(), arr[1].c_str());
+    } else {
+      error("Invalid: wrong number of token\n");
+    }
+    return;
+  } else if (op == "show") {
+    ss>>op;
+    if(ss.fail()){
+      bs.show();
+      return;
+    } else {
+      if(op=="finance"){
+        ss>>op;
+        if(ss.fail()){
+          show_finance();
+          return;
+        } else {
+          ss>>op;
+          if(!ss.fail()) error("exceeded token\n");
+          if(std::stoi(op)!=std::stod(op))error("show finance: invalid number\n");
+          show_finance(std::stoi(op));
+          return;
         }
-        kl.emplace_back(t);
-        token = strtok(nullptr, "|");
+      } else {
+        string command=op;
+        if(!regex_match(command,match,show_regex)){
+          error("Invalid: wrong command\n");
+          return;
+        }
+        if (command[1] == 'I') {
+          find_book(ISBN(command.substr(6).c_str()));
+          //cout << "show_ISBN " << isbn << '\n';
+        } else if (command[1] == 'n') {
+          find_book(BookName(command.substr(7, command.size() - 8).c_str()));
+          //cout << "show_name " << book_name << '\n';
+        } else if (command[1] == 'a') {
+          find_book(Author(command.substr(9, command.size() - 10).c_str()));
+          //cout << "show_author " << auth << '\n';
+        } else if (command[1] == 'k') {
+          find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
+          //cout << "show_keyword " << key_word << '\n';
+        }
+        return;
       }
-      modify_book(key_word);
     }
-    if (price != -1) modify_book(price);
-    if (isbn != ISBN{}) modify_book(isbn);
-    if (book_name != BookName{}) modify_book(book_name);
-    if (auth != Author{}) modify_book(auth);
+  } else {
+    regex modify_regex(
+            R"( *modify( +(-ISBN=[^\s]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"|-price=\d+(.\d+)?))+ *)");
+    if (regex_match(input, match, modify_regex)) {
+      ISBN isbn{};
+      BookName book_name{};
+      Author auth{};
+      KeyWord key_word{};
+      double price = -1;
+      string tok = input.substr(7);
+      //cout << tok << "\n";
+      smatch tok_match;
+      regex pattern(R"((-(ISBN|name|author|keyword|price))=([^\s]+))");
+      string::const_iterator citer = tok.cbegin();
+      while (regex_search(citer, tok.cend(), tok_match, pattern)) {
+        citer = tok_match[0].second;
+        string command = tok_match.str(2);
+        string value = tok_match.str(3);
+        //cout << command << " " << value << "\n";
+        if (command == "ISBN") {
+          isbn = ISBN(value.c_str());
+        } else if (command == "name") {
+          value = value.substr(1, value.size() - 2);
+          book_name = BookName(value.c_str());
+        } else if (command == "author") {
+          value = value.substr(1, value.size() - 2);
+          auth = Author(value.c_str());
+        } else if (command == "keyword") {
+          value = value.substr(1, value.size() - 2);
+          key_word = KeyWord(value.c_str());
+        } else if (command == "price") {
+          price = std::stod(value);
+        }
+      }
+      if (key_word != KeyWord{}) {
+        vector<KeyWord> kl;
+        char key_list[70];
+        strcpy(key_list, key_word.id);
+        char t[70];
+        char *token = strtok(key_list, "|");
+        while (token != nullptr) {
+          strcpy(t, token);
+          for (auto i: kl) {
+            if (i == KeyWord(t)) error("modify: repeated keyword\n");
+          }
+          kl.emplace_back(t);
+          token = strtok(nullptr, "|");
+        }
+        modify_book(key_word);
+      }
+      if (price != -1) modify_book(price);
+      if (isbn != ISBN{}) modify_book(isbn);
+      if (book_name != BookName{}) modify_book(book_name);
+      if (auth != Author{}) modify_book(auth);
 
-    return;
+      return;
+    }
   }
-
-  regex show_finance_regex(R"( *show +finance( +(\d+))? *)");
-  if (regex_match(input, match, show_finance_regex)) {
-    if (match.str(2).empty()) show_finance();
-    else show_finance(std::stoi(match.str(2)));
-    return;
-  }
-
-
 
   error("Invalid: no match\n");
 
