@@ -27,7 +27,6 @@ using std::multimap;
 using std::pair;
 using std::unordered_multimap;
 
-
 template<int length>
 class m_string {
 public:
