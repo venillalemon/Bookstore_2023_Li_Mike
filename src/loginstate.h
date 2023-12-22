@@ -112,11 +112,10 @@ void select(const ISBN &isbn) {
   if (curPrivilege() < 3) {
     error("select: low privilege\n");
   }
-  if (login_list.empty()) { return; }
-  login_list.back().second=isbn;
+  login_list.back().second = isbn;
   //cout << tmp.first.id << " selects " << tmp.second.id << '\n';
-  Book b = bs.bookinfo(isbn);
-  if (!(b.isbn == isbn)) {
+  auto it = bs.list.find(isbn);
+  if (it == bs.list.end()) {
     bs.insert_book(Book(isbn));
   }
 }
@@ -125,12 +124,12 @@ void import(int quantity, double tot_cost) {
   if (curPrivilege() < 3) error("import: low privilege\n");
   if (quantity <= 0) error("import: invalid quantity\n");
   if (tot_cost <= 0) error("import: invalid cost\n");
-  auto it = bs.list.upper_bound(curBook().isbn);
+  auto it = bs.list.find(curBook().isbn);
   // throw an error when no book is selected
-  it--;
-  BookNode tmp;
+
+  Book tmp;
   bs.read_main(tmp, (*it).second);
-  tmp.modify(login_list.back().second, quantity);
+  tmp.storage += quantity;
   bs.write_main(tmp, (*it).second);
 
   FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, tot_cost / quantity, IMPORT};
@@ -140,11 +139,12 @@ void import(int quantity, double tot_cost) {
 void buy(const ISBN &isbn, int quantity) {
   if (curPrivilege() < 1) error("buy: low privilege\n");
   if (quantity <= 0) error("buy: invalid quantity\n");
-  auto it = bs.list.upper_bound(isbn);
-  it--;
-  BookNode tmp;
+  auto it = bs.list.find(isbn);
+  if(it==bs.list.end()) error("buy: book not found\n");
+  Book tmp;
   bs.read_main(tmp, (*it).second);
-  tmp.modify(isbn, -quantity);
+  if (tmp.storage < quantity) error("buy: not enough storage\n");
+  tmp.storage -= quantity;
   bs.write_main(tmp, (*it).second);
 
   ID id = curUser().user_id;
@@ -159,10 +159,17 @@ void modify_book(const ISBN &isbn) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   ISBN del_isbn = curBook().isbn;// can throw "no book selected"
   if (del_isbn == isbn) { error("modify book: ISBN remains the same\n"); }
+  if(bs.list.find(isbn)!=bs.list.end()) error("modify book: ISBN already exists\n");
 
-  Book sel = bs.remove_book(del_isbn);
+  auto it=bs.list.find(del_isbn);
+  if(it==bs.list.end()) error("modify book: book not found\n");
+  int pos=it->second;
+  bs.list.erase(it);
+  bs.list.insert(pair<ISBN, int>(isbn, pos));
+  Book sel ;
+  bs.read_main(sel, (*it).second);
   sel.isbn = isbn;
-  bs.insert_book(sel);
+  bs.write_main(sel, (*it).second);
   for (auto &i: login_list) {
     if (i.second == del_isbn) i.second = isbn;
   }

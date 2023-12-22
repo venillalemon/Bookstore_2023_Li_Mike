@@ -58,13 +58,13 @@ public:
   }
 };
 
-namespace std{
-  template<int length>
-  struct hash<m_string<length>> {
-    size_t operator()(const m_string<length> &x) const {
+namespace std {
+    template<int length>
+    struct hash<m_string < length>> {
+    size_t operator()(const m_string <length> &x) const {
       return hash<string>()(x.id);
     }
-  };
+};
 }
 
 template<int length>
@@ -87,10 +87,11 @@ public:
   KeyWord key_word{};
   double price = 0;
   int storage = 0;
+  bool exist = true;
 public:
   Book() = default;
 
-  Book(const ISBN &_isbn) {
+  explicit Book(const ISBN &_isbn) {
     isbn = _isbn;
   }
 
@@ -103,202 +104,16 @@ public:
   }
 
   void show() const {
+    //if(!exist) return;
     cout << isbn << '\t' << name << '\t' << author << '\t';
     cout << key_word << '\t';
     cout << std::fixed << std::setprecision(2) << price;
     cout << '\t' << std::setprecision(0) << storage << '\n';
   }
-};
 
-class BookNode {
-public:
-  ISBN first{};
-  int size = 0;
-  int pos = 0;
-  Book data[block_len_book];
-
-  BookNode() = default;
-
-  BookNode(const ISBN &i, int p) {
-    first = i;
-    pos = p;
-    size = 0;
+  bool operator<(const Book &rhs) const {
+    return isbn < rhs.isbn;
   }
-
-  void print() {
-    cout << first.id << " " << size << " " << pos << ":\n";
-    if (pos < 3) {
-      cout << "   null\n";
-    }
-    for (int i = 0; i < size; ++i) {
-      cout << "   " << data[i].isbn << " " << data[i].name;
-      cout << " " << data[i].author << " ";
-      cout << data[i].key_word << " ";
-      cout << data[i].price << " " << data[i].storage << '\n';
-    }
-  }
-
-  void show() {
-    if (pos < 3) {
-      return;
-    }
-    for (int i = 0; i < size; ++i) {
-      cout << data[i].isbn << "\t" << data[i].name;
-      cout << "\t" << data[i].author << "\t";
-      cout << data[i].key_word << "\t";
-      cout << std::fixed << std::setprecision(2) << data[i].price;
-      cout << "\t" << std::setprecision(0) << data[i].storage << '\n';
-    }
-  }
-
-  void insert(const Book &bo) {
-    bool inserted = false;
-    for (int i = size; i > 0; i--) {
-      if (bo.isbn < data[i - 1].isbn) data[i] = data[i - 1];
-      if (data[i - 1].isbn < bo.isbn) {
-        data[i] = bo;
-        inserted = true;
-        break;
-      }
-      if (bo.isbn == data[i - 1].isbn) {
-        error("insert: book already exists\n");
-        return;
-      }
-    }
-    if (!inserted) data[0] = bo;
-    size++;
-    first = data[0].isbn;
-  }
-
-  Book remove(const ISBN &id) {
-    bool found = false;
-    Book tmp;
-    for (int i = 0; i < size; i++) {
-      if (!found && data[i].isbn == id) {
-        found = true;
-        tmp = data[i];
-      }
-      if (found) data[i] = data[i + 1];
-    }
-    if (found) size--;
-    else error("remove: book does not exist\n");
-    first = data[0].isbn;
-    return tmp;
-  }
-
-  Book find(const ISBN &id) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (id < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (data[l].isbn == id) return data[l];
-    else {
-      //error("not found book\n");
-      return {};
-    }
-  }
-
-  void modify(const ISBN &id, int change_storage) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (id < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (!(data[l].isbn == id)) {
-      error("not found book to modify\n");
-      return;
-    } else {
-      if (data[l].storage + change_storage >= 0) data[l].storage += change_storage;
-      else {
-        error("not enough to buy\n");
-        return;
-      }
-    }
-  }
-
-  BookName modify_book(const ISBN &isbn, const BookName &name) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (isbn < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (data[l].isbn == isbn) {
-      BookName tmp = data[l].name;
-      data[l].name = name;
-      return tmp;
-    } else {
-      error("not found book to modify\n");
-    }
-    return {};
-  }
-
-  Author modify_book(const ISBN &isbn, const Author &author) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (isbn < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (data[l].isbn == isbn) {
-      Author tmp = data[l].author;
-      data[l].author = author;
-      return tmp;
-    } else {
-      error("not found book to modify\n");
-    }
-    return {};
-  }
-
-  KeyWord modify_book(const ISBN &isbn, const KeyWord &key_word) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (isbn < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (data[l].isbn == isbn) {
-      KeyWord tmp = data[l].key_word;
-      data[l].key_word = key_word;
-      return tmp;
-    } else {
-      error("not found book to modify\n");
-    }
-    return {};
-  }
-
-  double modify_book(const ISBN &isbn, double price) {
-    int l = 0, r = size;
-    int mid;
-    while (l + 1 < r) {
-      mid = (l + r) >> 1;
-      if (isbn < data[mid].isbn) {
-        r = mid;
-      } else l = mid;
-    }
-    if (data[l].isbn == isbn) {
-      double tmp = data[l].price;
-      data[l].price = price;
-      return tmp;
-    } else {
-      error("not found book to modify\n");
-    }
-    return -1;
-  }
-
 };
 
 class BookSys {
@@ -307,18 +122,16 @@ public:
   string main_name;
   fstream file_main, file_aux;
   //main: Account; aux: map
-  map<ISBN, int> list; //map the ID to the pos in main
+  map<ISBN, int> list; //map the ISBN to the pos in main
   //read from aux
-  int lengthofnodes = 0;
-  int lengthoflist = 0;
+  int book_num = 0;
   // read from aux
   //aux: first--lengthofnodes; second--lengthoflist
   //main: account data
-  fstream file_bookname, file_author, file_keyword;
 
-  unordered_multimap<BookName , ISBN> bn;
-  unordered_multimap<Author, ISBN> au;
-  unordered_multimap<KeyWord, ISBN> kw;
+  unordered_multimap<BookName, int> bn;
+  unordered_multimap<Author, int> au;
+  unordered_multimap<KeyWord, int> kw;
 
   explicit BookSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
@@ -326,21 +139,13 @@ public:
     if (!file_main.is_open()) {
       file_main.close();
       init_main();
-      char s[25] = "", e[25] = "zzzzzzzzzzzzzzzzzzzzzzzz";
-      ISBN st(s), ed(e);
-      list.insert(pair<ISBN, int>(st, 1));
-      list.insert(pair<ISBN, int>(ed, 2));
-      BookNode head(st, 1), tail(ed, 2);
-      append_main(head);
-      append_main(tail);
     } else {
       file_main.close();
       read_aux();
     }
   }
 
-  ~BookSys() {
-  }
+  ~BookSys() = default;
 
   void init_main() {
     file_main.open(main_name, fstream::out | fstream::binary);
@@ -349,8 +154,7 @@ public:
 
   void write_aux() {
     file_aux.open(main_name + "_aux", fstream::out | fstream::binary);
-    file_aux.write(reinterpret_cast<char *>(&lengthofnodes), sizeof(int));
-    file_aux.write(reinterpret_cast<char *>(&lengthoflist), sizeof(int));
+    file_aux.write(reinterpret_cast<char *>(&book_num), sizeof(int));
     for (auto i: list) {
       file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<ISBN, int>));
     }
@@ -358,19 +162,19 @@ public:
 
     file_aux.open(main_name + "_book_name", fstream::out | fstream::binary);
     for (auto i: bn) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<BookName, ISBN>));
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<BookName, int>));
     }
     file_aux.close();
 
     file_aux.open(main_name + "_author", fstream::out | fstream::binary);
     for (auto i: au) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<Author, ISBN>));
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<Author, int>));
     }
     file_aux.close();
 
     file_aux.open(main_name + "_key_word", fstream::out | fstream::binary);
     for (auto i: kw) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<KeyWord, ISBN>));
+      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<KeyWord, int>));
     }
     file_aux.close();
   }
@@ -379,82 +183,77 @@ public:
     list.clear();
     pair<ISBN, int> aux{};
     file_aux.open(main_name + "_aux", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&lengthofnodes), sizeof(int));
-    file_aux.read(reinterpret_cast<char *>(&lengthoflist), sizeof(int));
-    for (int i = 0; i < lengthoflist; i++) {
+    file_aux.read(reinterpret_cast<char *>(&book_num), sizeof(int));
+    for (int i = 0; i < book_num; i++) {
       file_aux.read(reinterpret_cast<char *>(&aux), sizeof(pair<ISBN, int>));
       list.insert(aux);
     }
     file_aux.close();
 
     bn.clear();
-    pair<BookName, ISBN> bookname;
+    pair<BookName,int> bookname;
     file_aux.open(main_name + "_book_name", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, ISBN>));
+    file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, int>));
     while (!file_aux.eof()) {
       bn.insert(bookname);
-      file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, ISBN>));
+      file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, int>));
     }
     file_aux.close();
 
     au.clear();
-    pair<Author, ISBN> author;
+    pair<Author, int> author;
     file_aux.open(main_name + "_author", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, ISBN>));
+    file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, int>));
     while (!file_aux.eof()) {
       au.insert(author);
-      file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, ISBN>));
+      file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, int>));
     }
     file_aux.close();
 
     kw.clear();
-    pair<KeyWord, ISBN> keyword;
+    pair<KeyWord, int> keyword;
     file_aux.open(main_name + "_key_word", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, ISBN>));
+    file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, int>));
     while (!file_aux.eof()) {
       kw.insert(keyword);
-      file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, ISBN>));
+      file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, int>));
     }
     file_aux.close();
   }
 
-  void append_main(BookNode &t) {
+  void append_main(Book &t) {
     file_main.open(main_name, std::ofstream::app);
-    file_main.write(reinterpret_cast<char *>(&t), sizeof(BookNode));
+    file_main.write(reinterpret_cast<char *>(&t), sizeof(Book));
     file_main.close();
-    ++lengthofnodes;
-    ++lengthoflist;
+    ++book_num;
   }
 
   //main[pos]=t, 1-based
-  void write_main(BookNode &t, const int pos) {
-    if (pos > lengthofnodes) return;
+  void write_main(Book &t, const int pos) {
+    if (pos > book_num) return;
     file_main.open(main_name, std::ofstream::out | std::ifstream::in);
-    file_main.seekp((pos - 1) * sizeof(BookNode));
-    file_main.write(reinterpret_cast<char *> (&t), sizeof(BookNode));
+    file_main.seekp((pos - 1) * sizeof(Book));
+    file_main.write(reinterpret_cast<char *> (&t), sizeof(Book));
     file_main.close();
   }
 
   //t=main[pos],1-based
-  void read_main(BookNode &t, const int pos) {
-    if (pos > lengthofnodes) return;
+  void read_main(Book &t, const int pos) {
+    if (pos > book_num) return;
     file_main.open(main_name, std::ifstream::in);
-    file_main.seekg((pos - 1) * sizeof(BookNode));
-    file_main.read(reinterpret_cast<char *> (&t), sizeof(BookNode));
+    file_main.seekg((pos - 1) * sizeof(Book));
+    file_main.read(reinterpret_cast<char *> (&t), sizeof(Book));
     file_main.close();
   }
 
   void print() {
-    cout << "Books: [lengthofnodes=" << lengthofnodes << ", lengthoflist=" << lengthoflist << "]\n";
-    BookNode n;
+    cout << "Books: [book_num=" << book_num << "]\n";
+    Book n;
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {
-      cout << i.first << " " << i.second << '\n';
-    }
-    for (auto i: list) {
-      file_main.seekg((i.second - 1) * sizeof(BookNode));
-      file_main.read(reinterpret_cast<char *> (&n), sizeof(BookNode));
-      n.print();
+      file_main.seekg((i.second - 1) * sizeof(Book));
+      file_main.read(reinterpret_cast<char *> (&n), sizeof(Book));
+      n.show();
     }
     file_main.close();
     cout << "BookName:\n";
@@ -472,215 +271,158 @@ public:
   }
 
   void show() {
-    BookNode n;
-    if (lengthoflist == 2) {
-      cout << '\n';
-      return;
-    }
+    Book n;
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {
-      file_main.seekg((i.second - 1) * sizeof(BookNode));
-      file_main.read(reinterpret_cast<char *> (&n), sizeof(BookNode));
+      file_main.seekg((i.second - 1) * sizeof(Book));
+      file_main.read(reinterpret_cast<char *> (&n), sizeof(Book));
       n.show();
     }
     file_main.close();
   }
 
   Book bookinfo(const ISBN &isbn) {
-    auto it = list.upper_bound(isbn);
-    it--;
-    BookNode tmp;
-    read_main(tmp, (*it).second);
-    return tmp.find(isbn);
+    auto it = list.find(isbn);
+    if(it==list.end()) return {};
+    Book tmp;
+    read_main(tmp, it->second);
+    return tmp;
   }
 
   void find_book(const ISBN &isbn) {
-    Book tmp=bookinfo(isbn);
+    Book tmp = bookinfo(isbn);
     if (tmp.isbn == isbn) tmp.show();
     else cout << '\n';
   }
 
   void find_book(const BookName &book_name) {
-    vector<ISBN> v;
-    auto range=bn.equal_range(book_name);
-    for (auto it=range.first;it!=range.second;it++) {
-      v.push_back(it->second);
+    vector<Book> v;
+    auto range = bn.equal_range(book_name);
+    Book tmp;
+    for (auto it = range.first; it != range.second; it++) {
+      read_main(tmp, it->second);
+      v.push_back(tmp);
     }
-    sort(v.begin(), v.end());
+
     if (v.empty()) cout << '\n';
     else {
+      sort(v.begin(), v.end());
       for (const auto &t: v) {
-        bookinfo(t).show();
+        t.show();
       }
     }
   }
 
   void find_book(const Author &author) {
-    vector<ISBN> v;
-    auto range=au.equal_range(author);
-    for (auto it=range.first;it!=range.second;it++) {
-      v.push_back(it->second);
+    vector<Book> v;
+    auto range = au.equal_range(author);
+    Book tmp;
+    for (auto it = range.first; it != range.second; it++) {
+      read_main(tmp, it->second);
+      v.push_back(tmp);
     }
-    sort(v.begin(), v.end());
+
     if (v.empty()) cout << '\n';
     else {
+      sort(v.begin(), v.end());
       for (const auto &t: v) {
-        bookinfo(t).show();
+        t.show();
       }
     }
   }
 
   void find_book(const KeyWord &key_word) {
-    vector<ISBN> v;
-    auto range=kw.equal_range(key_word);
-    for (auto it=range.first;it!=range.second;it++) {
-      v.push_back(it->second);
+    vector<Book> v;
+    auto range = kw.equal_range(key_word);
+    Book tmp;
+    for (auto it = range.first; it != range.second; it++) {
+      read_main(tmp, it->second);
+      v.push_back(tmp);
     }
-    sort(v.begin(), v.end());
+
     if (v.empty()) cout << '\n';
     else {
+      sort(v.begin(), v.end());
       for (const auto &t: v) {
-        bookinfo(t).show();
+        t.show();
       }
     }
   }
 
-  void insert_book(const Book &bo) {
-    auto range=au.equal_range(bo.author);
-    for (auto it=range.first;it!=range.second;it++){
-      if (it->second==bo.isbn){
-        error("book isbn exists\n");
-        return;
-      }
+  void insert_book(Book bo) {
+    auto it=list.find(bo.isbn);
+    if(it!=list.end()){
+      error("insert book: ISBN exists\n");
+      return;
     }
-    auto it = list.lower_bound(bo.isbn);
-    auto last = it;
-    it--;
-
-    if (it == list.begin()) {
-      if (lengthoflist == 2) {
-        //cout << "first node\n";
-        first_node(bo);
-      } else {
-        BookNode next_node;
-        int pos = (*last).second;
-        read_main(next_node, pos);
-        list.erase(next_node.first);
-        next_node.insert(bo);
-        write_main(next_node, pos);
-        list.insert(pair<ISBN, int>(next_node.first, pos));
-        if (next_node.size >= block_len_book - 5) {
-          divide_node(pos);
-        }
-      }
-    } else {
-      BookNode next_node;
-      read_main(next_node, (*it).second);
-      next_node.insert(bo);
-      write_main(next_node, (*it).second);
-      if (next_node.size >= block_len_book - 5) {
-        divide_node((*it).second);
-      }
-    }
-    bn.insert({bo.name, bo.isbn});
-    au.insert({bo.author, bo.isbn});
-    insert_key_word(bo.key_word.id, bo.isbn);
+    append_main(bo);
+    list.insert({bo.isbn, book_num});
+    bn.insert({bo.name, book_num});
+    au.insert({bo.author, book_num});
+    insert_key_word(bo.key_word.id, book_num);
     //print();
   }
 
-  void insert_key_word(const char key_word[70], const ISBN &isbn) {
+  void insert_key_word(const char key_word[70], int pos) {
     char key_list[70];
     strcpy(key_list, key_word);
     char t[70];
     char *token = strtok(key_list, "|");
     while (token != nullptr) {
       strcpy(t, token);
-      kw.insert({KeyWord(t), isbn});
+      kw.insert({KeyWord(t), pos});
       token = strtok(nullptr, "|");
     }
   }
 
-  //divide the node at pos into 2 parts, the other part is at the tail
-  void divide_node(int pos) {
-    BookNode node;
-    read_main(node, pos);
-
-    BookNode new_node(node.data[node.size / 2].isbn, lengthofnodes + 1);
-
-    for (int i = node.size / 2; i < node.size; i++) {
-      new_node.data[i - node.size / 2] = node.data[i];
-      new_node.size++;
-    }
-    node.size /= 2;
-    list.insert(pair<ISBN, int>(new_node.first, lengthofnodes + 1));
-    write_main(node, pos);
-    append_main(new_node);
-  }
-
-  //insert the AccountNode at the head of the list
-  void first_node(const Book &bo) {
-    BookNode new_node(bo.isbn, lengthofnodes + 1);
-    new_node.size = 1;
-    new_node.data[0] = bo;
-    list.insert(pair<ISBN, int>(bo.isbn, lengthofnodes + 1));
-    append_main(new_node);
-  }
-
   Book remove_book(const ISBN &isbn) {
-    auto del = list.upper_bound(isbn);
-    del--;
-
-    int pos = (*del).second;
-    if (pos != 1 && pos != 2) {
-      BookNode node;
+    auto it = list.find(isbn);
+    if (it!=list.end()) {
       Book tmp;
-      read_main(node, pos);
-      list.erase(node.first);
-      tmp = node.remove(isbn);//the above two lines cannot be reversed
-      write_main(node, pos);
-      if (node.size != 0) list.insert(pair<ISBN, int>(node.first, node.pos));
-      else {
-        lengthoflist--;
-      }
-      remove_from_bn(tmp.name, tmp.isbn);
-      remove_from_au(tmp.author, tmp.isbn);
-      remove_from_kw(tmp.key_word, tmp.isbn);return tmp;
+      read_main(tmp, it->second);
+      remove_from_bn(tmp.name, it->second);
+      remove_from_au(tmp.author, it->second);
+      remove_from_kw(tmp.key_word, it->second);
+      tmp.exist = false;
+      write_main(tmp, it->second);
+      list.erase(it);
+      return tmp;
     } else {
       error("not found book to remove");
       return {};
     }
   }
 
-  void remove_from_bn(const BookName &book_name, const ISBN &isbn) {
-    auto range=bn.equal_range(book_name);
-    for (auto it=range.first;it!=range.second;it++) {
-      if (it->second == isbn) {
+  void remove_from_bn(const BookName &book_name, int pos) {
+    auto range = bn.equal_range(book_name);
+    for (auto it = range.first; it != range.second; it++) {
+      if (it->second == pos) {
         bn.erase(it);
         return;
       }
     }
   }
 
-  void remove_from_au(const Author &author, const ISBN &isbn) {
-    auto range=au.equal_range(author);
-    for (auto it=range.first;it!=range.second;it++) {
-      if (it->second == isbn) {
+  void remove_from_au(const Author &author, int pos) {
+    auto range = au.equal_range(author);
+    for (auto it = range.first; it != range.second; it++) {
+      if (it->second == pos) {
         au.erase(it);
         return;
       }
     }
   }
 
-  void remove_from_kw(const KeyWord &key_word, const ISBN &isbn) {
+  void remove_from_kw(const KeyWord &key_word, int pos) {
     char key_list[70];
     strcpy(key_list, key_word.id);
     char *token = strtok(key_list, "|");
     char t[70];
     while (token != nullptr) {
       strcpy(t, token);
-      auto range=kw.equal_range(KeyWord(t));
-      for (auto it=range.first;it!=range.second;it++) {
-        if (it->second == isbn) {
+      auto range = kw.equal_range(KeyWord(t));
+      for (auto it = range.first; it != range.second; it++) {
+        if (it->second == pos) {
           kw.erase(it);
           break;
         }
@@ -690,66 +432,66 @@ public:
   }
 
   void modify_book(const ISBN &isbn, const BookName &name) {
-    auto mod = list.upper_bound(isbn);
-    mod--;
+    auto mod = list.find(isbn);
 
-    if ((*mod).second != 1 && (*mod).second != 2) {
-      BookNode node;
+    if (mod!=list.end()) {
+      Book node;
       read_main(node, (*mod).second);
 
-      BookName n = node.modify_book(isbn, name);
+      BookName n = node.name;
+      node.name=name;
       write_main(node, (*mod).second);
 
-      remove_from_bn(n, isbn);
-      bn.insert({name, isbn});
+      remove_from_bn(n, mod->second);
+      bn.insert({name, mod->second});
     } else {
       error("not found book to modify\n");
     }
   }
 
   void modify_book(const ISBN &isbn, const Author &author) {
-    auto mod = list.upper_bound(isbn);
-    mod--;
-    if ((*mod).second != 1 && (*mod).second != 2) {
-      BookNode node;
+    auto mod = list.find(isbn);
+
+    if (mod!=list.end()) {
+      Book node;
       read_main(node, (*mod).second);
 
-      Author a = node.modify_book(isbn, author);
+      Author n = node.author;
+      node.author=author;
       write_main(node, (*mod).second);
 
-      remove_from_au(a, isbn);
-      au.insert({author, isbn});
+      remove_from_au(n, mod->second);
+      au.insert({author, mod->second});
     } else {
       error("not found book to modify\n");
     }
   }
 
   void modify_book(const ISBN &isbn, const KeyWord &key_word) {
-    auto mod = list.upper_bound(isbn);
-    mod--;
+    auto mod = list.find(isbn);
 
-    if ((*mod).second != 1 && (*mod).second != 2) {
-      BookNode node;
+    if (mod!=list.end()) {
+      Book node;
       read_main(node, (*mod).second);
 
-      KeyWord k = node.modify_book(isbn, key_word);
+      KeyWord k = node.key_word;
+      node.key_word=key_word;
       write_main(node, (*mod).second);
 
-      remove_from_kw(k, isbn);
-      insert_key_word(key_word.id, isbn);
+      remove_from_kw(k, (*mod).second);
+      insert_key_word(key_word.id, (*mod).second);
     } else {
       error("not found book to modify\n");
     }
   }
 
   void modify_book(const ISBN &isbn, double price) {
-    auto mod = list.upper_bound(isbn);
-    mod--;
+    auto mod = list.find(isbn);
 
-    if ((*mod).second != 1 && (*mod).second != 2) {
-      BookNode node;
+    if (mod!=list.end()) {
+      Book node;
       read_main(node, (*mod).second);
-      node.modify_book(isbn, price);
+      node.price=price;
       write_main(node, (*mod).second);
     } else {
       error("not found book to modify\n");
