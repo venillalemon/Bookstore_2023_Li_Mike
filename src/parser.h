@@ -253,26 +253,26 @@ void parse_Command(const string &input) {
     }
     return;
   } else if (op == "show") {
-    ss>>op;
-    if(ss.fail()){
+    ss >> op;
+    if (ss.fail()) {
       bs.show();
       return;
     } else {
-      if(op=="finance"){
-        ss>>op;
-        if(ss.fail()){
+      if (op == "finance") {
+        ss >> op;
+        if (ss.fail()) {
           show_finance();
           return;
         } else {
-          ss>>op;
-          if(!ss.fail()) error("exceeded token\n");
-          if(std::stoi(op)!=std::stod(op))error("show finance: invalid number\n");
+          ss >> op;
+          if (!ss.fail()) error("exceeded token\n");
+          if (std::stoi(op) != std::stod(op))error("show finance: invalid number\n");
           show_finance(std::stoi(op));
           return;
         }
       } else {
-        string command=op;
-        if(!regex_match(command,match,show_regex)){
+        string command = op;
+        if (!regex_match(command, match, show_regex)) {
           error("Invalid: wrong command\n");
           return;
         }
@@ -292,63 +292,61 @@ void parse_Command(const string &input) {
         return;
       }
     }
-  } else {
-    regex modify_regex(
-            R"( *modify( +(-ISBN=[^\s]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+"|-price=\d+(.\d+)?))+ *)");
-    if (regex_match(input, match, modify_regex)) {
-      ISBN isbn{};
-      BookName book_name{};
-      Author auth{};
-      KeyWord key_word{};
-      double price = -1;
-      string tok = input.substr(7);
-      //cout << tok << "\n";
-      smatch tok_match;
-      regex pattern(R"((-(ISBN|name|author|keyword|price))=([^\s]+))");
-      string::const_iterator citer = tok.cbegin();
-      while (regex_search(citer, tok.cend(), tok_match, pattern)) {
-        citer = tok_match[0].second;
-        string command = tok_match.str(2);
-        string value = tok_match.str(3);
-        //cout << command << " " << value << "\n";
-        if (command == "ISBN") {
-          isbn = ISBN(value.c_str());
-        } else if (command == "name") {
-          value = value.substr(1, value.size() - 2);
-          book_name = BookName(value.c_str());
-        } else if (command == "author") {
-          value = value.substr(1, value.size() - 2);
-          auth = Author(value.c_str());
-        } else if (command == "keyword") {
-          value = value.substr(1, value.size() - 2);
-          key_word = KeyWord(value.c_str());
-        } else if (command == "price") {
-          price = std::stod(value);
-        }
+  } else if(op=="modify"){
+    ISBN isbn{};
+    BookName book_name{};
+    Author auth{};
+    KeyWord key_word{};
+    double price = -1;
+    regex pattern(R"(-(ISBN|name|author|keyword|price)=([^\s]+))");
+    ss >> op;
+    while (!ss.fail()) {
+      if (!regex_match(op, match, pattern)) {
+        error("Invalid: wrong command\n");
+        return;
       }
-      if (key_word != KeyWord{}) {
-        vector<KeyWord> kl;
-        char key_list[70];
-        strcpy(key_list, key_word.id);
-        char t[70];
-        char *token = strtok(key_list, "|");
-        while (token != nullptr) {
-          strcpy(t, token);
-          for (auto i: kl) {
-            if (i == KeyWord(t)) error("modify: repeated keyword\n");
-          }
-          kl.emplace_back(t);
-          token = strtok(nullptr, "|");
-        }
-        modify_book(key_word);
+      string command = match.str(1);
+      string value = match.str(2);
+      //cout << command << " " << value << "\n";
+      if (command == "ISBN") {
+        isbn = ISBN(value.c_str());
+      } else if (command == "name") {
+        value = value.substr(1, value.size() - 2);
+        book_name = BookName(value.c_str());
+      } else if (command == "author") {
+        value = value.substr(1, value.size() - 2);
+        auth = Author(value.c_str());
+      } else if (command == "keyword") {
+        value = value.substr(1, value.size() - 2);
+        key_word = KeyWord(value.c_str());
+      } else if (command == "price") {
+        price = std::stod(value);
       }
-      if (price != -1) modify_book(price);
-      if (isbn != ISBN{}) modify_book(isbn);
-      if (book_name != BookName{}) modify_book(book_name);
-      if (auth != Author{}) modify_book(auth);
-
-      return;
+      ss >> op;
     }
+    if (key_word != KeyWord{}) {
+      vector<KeyWord> kl;
+      char key_list[70];
+      strcpy(key_list, key_word.id);
+      char t[70];
+      char *token = strtok(key_list, "|");
+      while (token != nullptr) {
+        strcpy(t, token);
+        for (auto i: kl) {
+          if (i == KeyWord(t)) error("modify: repeated keyword\n");
+        }
+        kl.emplace_back(t);
+        token = strtok(nullptr, "|");
+      }
+      modify_book(key_word);
+    }
+    if (price != -1) modify_book(price);
+    if (isbn != ISBN{}) modify_book(isbn);
+    if (book_name != BookName{}) modify_book(book_name);
+    if (auth != Author{}) modify_book(auth);
+
+    return;
+
   }
 
   error("Invalid: no match\n");
