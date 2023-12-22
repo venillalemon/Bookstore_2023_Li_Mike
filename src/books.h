@@ -24,14 +24,14 @@ using std::unordered_map;
 using std::map;
 using std::multimap;
 using std::pair;
+using std::unordered_multimap;
 
-
-const int block_len_book = 50;
+const int block_len_book = 500;
 
 template<int length>
 class m_string {
 public:
-  char id[length];
+  char id[length]{};
 
   m_string() = default;
 
@@ -57,6 +57,15 @@ public:
     return (strcmp(id, rhs.id) < 0);
   }
 };
+
+namespace std{
+  template<int length>
+  struct hash<m_string<length>> {
+    size_t operator()(const m_string<length> &x) const {
+      return hash<string>()(x.id);
+    }
+  };
+}
 
 template<int length>
 ostream &operator<<(ostream &os, const m_string<length> m) {
@@ -271,7 +280,7 @@ public:
     return {};
   }
 
-  double modify_book(const ISBN& isbn,double price){
+  double modify_book(const ISBN &isbn, double price) {
     int l = 0, r = size;
     int mid;
     while (l + 1 < r) {
@@ -307,9 +316,9 @@ public:
   //main: account data
   fstream file_bookname, file_author, file_keyword;
 
-  multimap<BookName, ISBN> bn;
-  multimap<Author, ISBN> au;
-  multimap<KeyWord, ISBN> kw;
+  unordered_multimap<BookName , ISBN> bn;
+  unordered_multimap<Author, ISBN> au;
+  unordered_multimap<KeyWord, ISBN> kw;
 
   explicit BookSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
@@ -464,6 +473,10 @@ public:
 
   void show() {
     BookNode n;
+    if (lengthoflist == 2) {
+      cout << '\n';
+      return;
+    }
     file_main.open(main_name, std::ifstream::in);
     for (auto i: list) {
       file_main.seekg((i.second - 1) * sizeof(BookNode));
@@ -482,97 +495,63 @@ public:
   }
 
   void find_book(const ISBN &isbn) {
-    if (bookinfo(isbn).isbn == isbn) bookinfo(isbn).show();
+    Book tmp=bookinfo(isbn);
+    if (tmp.isbn == isbn) tmp.show();
     else cout << '\n';
   }
 
   void find_book(const BookName &book_name) {
-    multimap<BookName, ISBN>::iterator it;
     vector<ISBN> v;
-    for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
+    auto range=bn.equal_range(book_name);
+    for (auto it=range.first;it!=range.second;it++) {
       v.push_back(it->second);
     }
-    sort(v.begin(),v.end());
+    sort(v.begin(), v.end());
     if (v.empty()) cout << '\n';
     else {
-      auto beg=list.upper_bound(*v.begin());
-      beg--;
-      auto end=list.upper_bound(*v.rbegin());
-      int cur=0;
-      BookNode tmp;
-      for(auto i=beg;i!=end;++i){
-        read_main(tmp,(*i).second);
-        for(int j=0;j<tmp.size;++j){
-          if(tmp.data[j].isbn==v[cur]){
-            tmp.data[j].show();
-            cur++;
-            if(cur==v.size()) return;
-          }
-        }
+      for (const auto &t: v) {
+        bookinfo(t).show();
       }
-
     }
   }
 
   void find_book(const Author &author) {
-    multimap<Author, ISBN>::iterator it;
     vector<ISBN> v;
-    for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
+    auto range=au.equal_range(author);
+    for (auto it=range.first;it!=range.second;it++) {
       v.push_back(it->second);
     }
-    sort(v.begin(),v.end());
+    sort(v.begin(), v.end());
     if (v.empty()) cout << '\n';
     else {
-      auto beg=list.upper_bound(*v.begin());
-      beg--;
-      auto end=list.upper_bound(*v.rbegin());
-      int cur=0;
-      BookNode tmp;
-      for(auto i=beg;i!=end;++i){
-        read_main(tmp,(*i).second);
-        for(int j=0;j<tmp.size;++j){
-          if(tmp.data[j].isbn==v[cur]){
-            tmp.data[j].show();
-            cur++;
-            if(cur==v.size()) return;
-          }
-        }
+      for (const auto &t: v) {
+        bookinfo(t).show();
       }
     }
   }
 
   void find_book(const KeyWord &key_word) {
-    multimap<KeyWord, ISBN>::iterator it;
     vector<ISBN> v;
-    for (it = kw.lower_bound(key_word); it != kw.upper_bound(key_word); ++it) {
+    auto range=kw.equal_range(key_word);
+    for (auto it=range.first;it!=range.second;it++) {
       v.push_back(it->second);
     }
-    sort(v.begin(),v.end());
+    sort(v.begin(), v.end());
     if (v.empty()) cout << '\n';
     else {
-      auto beg=list.upper_bound(*v.begin());
-      beg--;
-      auto end=list.upper_bound(*v.rbegin());
-      int cur=0;
-      BookNode tmp;
-      for(auto i=beg;i!=end;++i){
-        read_main(tmp,(*i).second);
-        for(int j=0;j<tmp.size;++j){
-          if(tmp.data[j].isbn==v[cur]){
-            tmp.data[j].show();
-            cur++;
-            if(cur==v.size()) return;
-          }
-        }
+      for (const auto &t: v) {
+        bookinfo(t).show();
       }
     }
-
   }
 
   void insert_book(const Book &bo) {
-    Book tmp = bookinfo(bo.isbn);
-    if (tmp.isbn == bo.isbn) {
-      error("isbn exists\n");
+    auto range=au.equal_range(bo.author);
+    for (auto it=range.first;it!=range.second;it++){
+      if (it->second==bo.isbn){
+        error("book isbn exists\n");
+        return;
+      }
     }
     auto it = list.lower_bound(bo.isbn);
     auto last = it;
@@ -590,7 +569,7 @@ public:
         next_node.insert(bo);
         write_main(next_node, pos);
         list.insert(pair<ISBN, int>(next_node.first, pos));
-        if (next_node.size >= block_len_book - 20) {
+        if (next_node.size >= block_len_book - 5) {
           divide_node(pos);
         }
       }
@@ -599,7 +578,7 @@ public:
       read_main(next_node, (*it).second);
       next_node.insert(bo);
       write_main(next_node, (*it).second);
-      if (next_node.size >= block_len_book - 20) {
+      if (next_node.size >= block_len_book - 5) {
         divide_node((*it).second);
       }
     }
@@ -650,10 +629,11 @@ public:
   Book remove_book(const ISBN &isbn) {
     auto del = list.upper_bound(isbn);
     del--;
-    BookNode node;
-    Book tmp;
+
     int pos = (*del).second;
     if (pos != 1 && pos != 2) {
+      BookNode node;
+      Book tmp;
       read_main(node, pos);
       list.erase(node.first);
       tmp = node.remove(isbn);//the above two lines cannot be reversed
@@ -664,16 +644,16 @@ public:
       }
       remove_from_bn(tmp.name, tmp.isbn);
       remove_from_au(tmp.author, tmp.isbn);
-      remove_from_kw(tmp.key_word, tmp.isbn);
+      remove_from_kw(tmp.key_word, tmp.isbn);return tmp;
     } else {
       error("not found book to remove");
+      return {};
     }
-    return tmp;
   }
 
   void remove_from_bn(const BookName &book_name, const ISBN &isbn) {
-    multimap<BookName, ISBN>::iterator it;
-    for (it = bn.lower_bound(book_name); it != bn.upper_bound(book_name); ++it) {
+    auto range=bn.equal_range(book_name);
+    for (auto it=range.first;it!=range.second;it++) {
       if (it->second == isbn) {
         bn.erase(it);
         return;
@@ -682,8 +662,8 @@ public:
   }
 
   void remove_from_au(const Author &author, const ISBN &isbn) {
-    multimap<Author, ISBN>::iterator it;
-    for (it = au.lower_bound(author); it != au.upper_bound(author); ++it) {
+    auto range=au.equal_range(author);
+    for (auto it=range.first;it!=range.second;it++) {
       if (it->second == isbn) {
         au.erase(it);
         return;
@@ -692,14 +672,14 @@ public:
   }
 
   void remove_from_kw(const KeyWord &key_word, const ISBN &isbn) {
-    multimap<KeyWord, ISBN>::iterator it;
     char key_list[70];
     strcpy(key_list, key_word.id);
     char *token = strtok(key_list, "|");
     char t[70];
     while (token != nullptr) {
       strcpy(t, token);
-      for (it = kw.lower_bound(KeyWord(t)); it != kw.upper_bound(KeyWord(t)); ++it) {
+      auto range=kw.equal_range(KeyWord(t));
+      for (auto it=range.first;it!=range.second;it++) {
         if (it->second == isbn) {
           kw.erase(it);
           break;
@@ -712,8 +692,9 @@ public:
   void modify_book(const ISBN &isbn, const BookName &name) {
     auto mod = list.upper_bound(isbn);
     mod--;
-    BookNode node;
+
     if ((*mod).second != 1 && (*mod).second != 2) {
+      BookNode node;
       read_main(node, (*mod).second);
 
       BookName n = node.modify_book(isbn, name);
@@ -729,8 +710,8 @@ public:
   void modify_book(const ISBN &isbn, const Author &author) {
     auto mod = list.upper_bound(isbn);
     mod--;
-    BookNode node;
     if ((*mod).second != 1 && (*mod).second != 2) {
+      BookNode node;
       read_main(node, (*mod).second);
 
       Author a = node.modify_book(isbn, author);
@@ -746,8 +727,9 @@ public:
   void modify_book(const ISBN &isbn, const KeyWord &key_word) {
     auto mod = list.upper_bound(isbn);
     mod--;
-    BookNode node;
+
     if ((*mod).second != 1 && (*mod).second != 2) {
+      BookNode node;
       read_main(node, (*mod).second);
 
       KeyWord k = node.modify_book(isbn, key_word);
@@ -760,11 +742,12 @@ public:
     }
   }
 
-  void modify_book(const ISBN& isbn,double price){
+  void modify_book(const ISBN &isbn, double price) {
     auto mod = list.upper_bound(isbn);
     mod--;
-    BookNode node;
+
     if ((*mod).second != 1 && (*mod).second != 2) {
+      BookNode node;
       read_main(node, (*mod).second);
       node.modify_book(isbn, price);
       write_main(node, (*mod).second);
