@@ -15,5 +15,5 @@ add_executable(code
         src/finance.h
         src/error.h
         src/parser.h
-        blocklist.h
+        src/blocklist.h
 )
