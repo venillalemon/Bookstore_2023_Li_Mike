@@ -26,7 +26,7 @@ using std::multimap;
 using std::pair;
 using std::unordered_multimap;
 
-const int block_len_book = 500;
+const int block_len_book = 80;
 
 template<int length>
 class m_string {
