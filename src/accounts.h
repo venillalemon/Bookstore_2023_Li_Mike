@@ -21,8 +21,7 @@ using std::unordered_map;
 using std::map;
 using std::pair;
 
-
-const int block_len = 500; // length of block
+const int block_len = 500;
 
 typedef m_string<35> ID;
 
