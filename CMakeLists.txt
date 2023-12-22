@@ -14,4 +14,6 @@ add_executable(code
         src/loginstate.h
         src/finance.h
         src/error.h
-        src/parser.h)
+        src/parser.h
+        blocklist.h
+)

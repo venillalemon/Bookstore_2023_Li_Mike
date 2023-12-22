@@ -27,8 +27,6 @@ using std::pair;
 using std::unordered_multimap;
 
 
-const int block_len_book = 500;
-
 template<int length>
 class m_string {
 public:
@@ -154,8 +152,10 @@ public:
   }
 
   void write_aux() {
-    file_aux.open(main_name + "_aux", fstream::out | fstream::binary);
+    file_aux.open(main_name + "_num", fstream::out | fstream::binary);
     file_aux.write(reinterpret_cast<char *>(&book_num), sizeof(int));
+    file_aux.close();
+    file_aux.open(main_name + "_aux", fstream::out | fstream::binary);
     for (auto i: list) {
       file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<ISBN, int>));
     }
@@ -183,8 +183,10 @@ public:
   void read_aux() {
     list.clear();
     pair<ISBN, int> aux{};
-    file_aux.open(main_name + "_aux", ifstream::in);
+    file_aux.open(main_name + "_num", ifstream::in);
     file_aux.read(reinterpret_cast<char *>(&book_num), sizeof(int));
+    file_aux.close();
+    file_aux.open(main_name + "_aux", ifstream::in);
     for (int i = 0; i < book_num; i++) {
       file_aux.read(reinterpret_cast<char *>(&aux), sizeof(pair<ISBN, int>));
       list.insert(aux);
