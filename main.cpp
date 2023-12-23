@@ -18,7 +18,7 @@ int main() {
       std::string input;
       getline(cin, input);
       if(cin.eof()) break;
-      if (input.empty()) continue;
+      if (input.empty()) break;
       regex exit_regex(R"( *exit *)");
       regex quit_regex(R"( *quit *)");
       if(regex_match(input, exit_regex) || regex_match(input, quit_regex)) break;
