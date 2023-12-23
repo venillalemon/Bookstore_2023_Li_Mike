@@ -69,6 +69,10 @@ void parse_Command(const string &input) {
       error("Invalid ID\n");
       return;
     }
+    if (op.size() > 30) {
+      error("Invalid ID\n");
+      return;
+    }
     ID id(op.c_str());
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
@@ -79,6 +83,10 @@ void parse_Command(const string &input) {
     if (ss.fail()) error("not enough token\n");
     if (!regex_match(op, match, name_regex)) {
       error("Invalid ID\n");
+      return;
+    }
+    if (op.size() > 20) {
+      error("Invalid ISBN\n");
       return;
     }
     ISBN isbn(op.c_str());
@@ -94,10 +102,15 @@ void parse_Command(const string &input) {
       error("Invalid ISBN\n");
       return;
     }
+    if (op.size() > 20) {
+      error("Invalid ISBN\n");
+      return;
+    }
     ISBN isbn(op.c_str());
     string amount;
     ss >> amount;
     if (ss.fail()) error("not enough token\n");
+    if(amount.size()>10) error("buy: exceed length\n");
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
     if (std::stod(amount) != std::stoi(amount)) error("buy: invalid quantity\n");
@@ -110,6 +123,7 @@ void parse_Command(const string &input) {
     if (ss.fail()) error("not enough token\n");
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
+    if (amount.size() > 10 || cost.size() > 13) error("import: exceed length\n");
     int a = std::stoi(amount);
     double c = std::stod(cost);
     if (std::stod(amount) != a) error("import: invalid quantity\n");
@@ -151,6 +165,10 @@ void parse_Command(const string &input) {
       error("Invalid ID\n");
       return;
     }
+    if (op.size() > 30) {
+      error("Invalid ID\n");
+      return;
+    }
     ID id(op.c_str());
 
     ss >> op;
@@ -162,6 +180,10 @@ void parse_Command(const string &input) {
       error("Invalid password\n");
       return;
     }
+    if (op.size() > 30) {
+      error("Invalid password\n");
+      return;
+    }
     string password = op;
 
     ss >> op;
@@ -170,6 +192,10 @@ void parse_Command(const string &input) {
       return;
     }
     if (!regex_match(op, match, name_regex)) {
+      error("Invalid name\n");
+      return;
+    }
+    if (op.size() > 30) {
       error("Invalid name\n");
       return;
     }
@@ -191,6 +217,10 @@ void parse_Command(const string &input) {
       error("Invalid ID\n");
       return;
     }
+    if (op.size() > 30) {
+      error("Invalid ID\n");
+      return;
+    }
     ID id(op.c_str());
 
     ss >> op;
@@ -199,6 +229,10 @@ void parse_Command(const string &input) {
       return;
     }
     if (!regex_match(op, match, ID_regex)) {
+      error("Invalid password\n");
+      return;
+    }
+    if (op.size() > 30) {
       error("Invalid password\n");
       return;
     }
@@ -222,6 +256,10 @@ void parse_Command(const string &input) {
     }
     if (!regex_match(op, match, name_regex)) {
       error("Invalid username\n");
+      return;
+    }
+    if (op.size() > 30) {
+      error("Invalid name\n");
       return;
     }
     string name = op;
@@ -266,6 +304,7 @@ void parse_Command(const string &input) {
         } else {
           ss >> op;
           if (!ss.fail()) error("exceeded token\n");
+          if (op.size() > 10) error("show finance: exceed length\n");
           if (std::stoi(op) != std::stod(op))error("show finance: invalid number\n");
           show_finance(std::stoi(op));
           return;
@@ -340,6 +379,7 @@ void parse_Command(const string &input) {
         key_word = KeyWord(value.c_str());
       } else if (command == "price") {
         if (std::stod(value) < 0) error("modify: wrong price\n");
+        if (value.size() > 13) error("modify: exceed length\n");
         if (price != -1) error("modify: repeated price\n");
         if (value == ".") error("modify: wrong price\n");
         price = std::stod(value);
