@@ -11,6 +11,7 @@
 #include <cstring>
 #include <iomanip>
 #include "error.h"
+#include "blocklist.h"
 
 using std::cout;
 using std::ostream;
@@ -25,8 +26,6 @@ using std::map;
 using std::multimap;
 using std::pair;
 using std::unordered_multimap;
-
-const int block_len_book = 80;
 
 template<int length>
 class m_string {
@@ -60,11 +59,11 @@ public:
 
 namespace std {
     template<int length>
-    struct hash<m_string < length>> {
-    size_t operator()(const m_string <length> &x) const {
-      return hash<string>()(x.id);
-    }
-};
+    struct hash<m_string<length>> {
+      size_t operator()(const m_string<length> &x) const {
+        return hash<string>()(x.id);
+      }
+    };
 }
 
 template<int length>
@@ -122,16 +121,13 @@ public:
   string main_name;
   fstream file_main, file_aux;
   //main: Account; aux: map
-  map<ISBN, int> list; //map the ISBN to the pos in main
   //read from aux
   int book_num = 0;
-  // read from aux
-  //aux: first--lengthofnodes; second--lengthoflist
-  //main: account data
 
-  unordered_multimap<BookName, int> bn;
-  unordered_multimap<Author, int> au;
-  unordered_multimap<KeyWord, int> kw;
+  BlockList<ISBN, 250> ib_list;
+  BlockList<BookName, 250> bn_list;
+  BlockList<Author, 250> au_list;
+  BlockList<KeyWord, 500> kw_list;
 
   explicit BookSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
@@ -143,6 +139,10 @@ public:
       file_main.close();
       read_aux();
     }
+    ib_list.init(main_name + "_isbn");
+    bn_list.init(main_name + "_bn");
+    au_list.init(main_name + "_au");
+    kw_list.init(main_name + "_kw");
   }
 
   ~BookSys() = default;
@@ -153,71 +153,19 @@ public:
   }
 
   void write_aux() {
-    file_aux.open(main_name + "_aux", fstream::out | fstream::binary);
+    file_aux.open(main_name + "_num", fstream::out | fstream::binary);
     file_aux.write(reinterpret_cast<char *>(&book_num), sizeof(int));
-    for (auto i: list) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<ISBN, int>));
-    }
     file_aux.close();
 
-    file_aux.open(main_name + "_book_name", fstream::out | fstream::binary);
-    for (auto i: bn) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<BookName, int>));
-    }
-    file_aux.close();
-
-    file_aux.open(main_name + "_author", fstream::out | fstream::binary);
-    for (auto i: au) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<Author, int>));
-    }
-    file_aux.close();
-
-    file_aux.open(main_name + "_key_word", fstream::out | fstream::binary);
-    for (auto i: kw) {
-      file_aux.write(reinterpret_cast<char *>(&i), sizeof(pair<KeyWord, int>));
-    }
-    file_aux.close();
+    ib_list.write_list();
+    bn_list.write_list();
+    au_list.write_list();
+    kw_list.write_list();
   }
 
   void read_aux() {
-    list.clear();
-    pair<ISBN, int> aux{};
-    file_aux.open(main_name + "_aux", ifstream::in);
+    file_aux.open(main_name + "_num", ifstream::in);
     file_aux.read(reinterpret_cast<char *>(&book_num), sizeof(int));
-    for (int i = 0; i < book_num; i++) {
-      file_aux.read(reinterpret_cast<char *>(&aux), sizeof(pair<ISBN, int>));
-      list.insert(aux);
-    }
-    file_aux.close();
-
-    bn.clear();
-    pair<BookName,int> bookname;
-    file_aux.open(main_name + "_book_name", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, int>));
-    while (!file_aux.eof()) {
-      bn.insert(bookname);
-      file_aux.read(reinterpret_cast<char *>(&bookname), sizeof(pair<BookName, int>));
-    }
-    file_aux.close();
-
-    au.clear();
-    pair<Author, int> author;
-    file_aux.open(main_name + "_author", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, int>));
-    while (!file_aux.eof()) {
-      au.insert(author);
-      file_aux.read(reinterpret_cast<char *>(&author), sizeof(pair<Author, int>));
-    }
-    file_aux.close();
-
-    kw.clear();
-    pair<KeyWord, int> keyword;
-    file_aux.open(main_name + "_key_word", ifstream::in);
-    file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, int>));
-    while (!file_aux.eof()) {
-      kw.insert(keyword);
-      file_aux.read(reinterpret_cast<char *>(&keyword), sizeof(pair<KeyWord, int>));
-    }
     file_aux.close();
   }
 
@@ -248,44 +196,29 @@ public:
 
   void print() {
     cout << "Books: [book_num=" << book_num << "]\n";
-    Book n;
-    file_main.open(main_name, std::ifstream::in);
-    for (auto i: list) {
-      file_main.seekg((i.second - 1) * sizeof(Book));
-      file_main.read(reinterpret_cast<char *> (&n), sizeof(Book));
-      n.show();
-    }
-    file_main.close();
+    ib_list.print();
     cout << "BookName:\n";
-    for (auto i: bn) {
-      cout << i.first << " " << i.second << '\n';
-    }
+    bn_list.print();
     cout << "Author:\n";
-    for (auto i: au) {
-      cout << i.first << " " << i.second << '\n';
-    }
+    au_list.print();
     cout << "KeyWord:\n";
-    for (auto i: kw) {
-      cout << i.first << " " << i.second << '\n';
-    }
+    kw_list.print();
   }
 
   void show() {
-    Book n;
-    file_main.open(main_name, std::ifstream::in);
-    for (auto i: list) {
-      file_main.seekg((i.second - 1) * sizeof(Book));
-      file_main.read(reinterpret_cast<char *> (&n), sizeof(Book));
-      n.show();
+    auto v=ib_list.all_books();
+    Book b;
+    for(auto pos:v){
+      read_main(b,pos);
+      b.show();
     }
-    file_main.close();
   }
 
   Book bookinfo(const ISBN &isbn) {
-    auto it = list.find(isbn);
-    if(it==list.end()) return {};
+    auto it = ib_list.get_data(isbn);
+    if (it.empty()) return {};
     Book tmp;
-    read_main(tmp, it->second);
+    read_main(tmp, it[0]);
     return tmp;
   }
 
@@ -296,69 +229,67 @@ public:
   }
 
   void find_book(const BookName &book_name) {
-    vector<Book> v;
-    auto range = bn.equal_range(book_name);
     Book tmp;
-    for (auto it = range.first; it != range.second; it++) {
-      read_main(tmp, it->second);
-      v.push_back(tmp);
-    }
 
-    if (v.empty()) cout << '\n';
+    vector<int> i = bn_list.get_data(book_name);
+    vector<Book> vf;
+    for (auto it: i) {
+      read_main(tmp, it);
+      vf.push_back(tmp);
+    }
+    if (vf.empty()) cout << '\n';
     else {
-      sort(v.begin(), v.end());
-      for (const auto &t: v) {
+      sort(vf.begin(), vf.end());
+      for (const auto &t: vf) {
         t.show();
       }
     }
   }
 
   void find_book(const Author &author) {
-    vector<Book> v;
-    auto range = au.equal_range(author);
     Book tmp;
-    for (auto it = range.first; it != range.second; it++) {
-      read_main(tmp, it->second);
-      v.push_back(tmp);
+    vector<int> a = au_list.get_data(author);
+    vector<Book> af;
+    for (auto it: a) {
+      read_main(tmp, it);
+      af.push_back(tmp);
     }
-
-    if (v.empty()) cout << '\n';
+    if (af.empty()) cout << '\n';
     else {
-      sort(v.begin(), v.end());
-      for (const auto &t: v) {
+      sort(af.begin(), af.end());
+      for (const auto &t: af) {
         t.show();
       }
     }
   }
 
   void find_book(const KeyWord &key_word) {
-    vector<Book> v;
-    auto range = kw.equal_range(key_word);
     Book tmp;
-    for (auto it = range.first; it != range.second; it++) {
-      read_main(tmp, it->second);
-      v.push_back(tmp);
+    vector<int> k = kw_list.get_data(key_word);
+    vector<Book> kf;
+    for (auto it: k) {
+      read_main(tmp, it);
+      kf.push_back(tmp);
     }
-
-    if (v.empty()) cout << '\n';
+    if (kf.empty()) cout << '\n';
     else {
-      sort(v.begin(), v.end());
-      for (const auto &t: v) {
+      sort(kf.begin(), kf.end());
+      for (const auto &t: kf) {
         t.show();
       }
     }
   }
 
   void insert_book(Book bo) {
-    auto it=list.find(bo.isbn);
-    if(it!=list.end()){
+    auto it = ib_list.get_data(bo.isbn);
+    if (!it.empty()) {
       error("insert book: ISBN exists\n");
       return;
     }
     append_main(bo);
-    list.insert({bo.isbn, book_num});
-    bn.insert({bo.name, book_num});
-    au.insert({bo.author, book_num});
+    ib_list.insert_pair(bo.isbn, book_num);
+    bn_list.insert_pair(bo.name, book_num);
+    au_list.insert_pair(bo.author, book_num);
     insert_key_word(bo.key_word.id, book_num);
     //print();
   }
@@ -368,48 +299,12 @@ public:
     strcpy(key_list, key_word);
     char t[70];
     char *token = strtok(key_list, "|");
+    KeyWord key_word_;
     while (token != nullptr) {
       strcpy(t, token);
-      kw.insert({KeyWord(t), pos});
+      key_word_ = KeyWord(t);
+      kw_list.insert_pair(key_word_, pos);
       token = strtok(nullptr, "|");
-    }
-  }
-
-  Book remove_book(const ISBN &isbn) {
-    auto it = list.find(isbn);
-    if (it!=list.end()) {
-      Book tmp;
-      read_main(tmp, it->second);
-      remove_from_bn(tmp.name, it->second);
-      remove_from_au(tmp.author, it->second);
-      remove_from_kw(tmp.key_word, it->second);
-      tmp.exist = false;
-      write_main(tmp, it->second);
-      list.erase(it);
-      return tmp;
-    } else {
-      error("not found book to remove");
-      return {};
-    }
-  }
-
-  void remove_from_bn(const BookName &book_name, int pos) {
-    auto range = bn.equal_range(book_name);
-    for (auto it = range.first; it != range.second; it++) {
-      if (it->second == pos) {
-        bn.erase(it);
-        return;
-      }
-    }
-  }
-
-  void remove_from_au(const Author &author, int pos) {
-    auto range = au.equal_range(author);
-    for (auto it = range.first; it != range.second; it++) {
-      if (it->second == pos) {
-        au.erase(it);
-        return;
-      }
     }
   }
 
@@ -418,83 +313,136 @@ public:
     strcpy(key_list, key_word.id);
     char *token = strtok(key_list, "|");
     char t[70];
+    KeyWord key_word_;
     while (token != nullptr) {
       strcpy(t, token);
-      auto range = kw.equal_range(KeyWord(t));
-      for (auto it = range.first; it != range.second; it++) {
-        if (it->second == pos) {
-          kw.erase(it);
-          break;
-        }
-      }
+      key_word_ = KeyWord(t);
+      kw_list.remove_pair(key_word_, pos);
       token = strtok(nullptr, "|");
     }
   }
 
-  void modify_book(const ISBN &isbn, const BookName &name) {
-    auto mod = list.find(isbn);
+  void modify_book(const ISBN &isbn, ISBN &new_isbn) {
+    auto mod = ib_list.get_data(isbn);
+    auto it = ib_list.get_data(new_isbn);
+    if (!it.empty()) {
+      error("modify book: ISBN exists\n");
+      return;
+    }
+    if (mod.empty()) {
+      error("modify book: book not found\n");
+      return;
+    }
 
-    if (mod!=list.end()) {
+    if (mod.size() == 1) {
       Book node;
-      read_main(node, (*mod).second);
+      read_main(node, mod[0]);
+
+      ISBN i = node.isbn;
+      node.isbn = new_isbn;
+      write_main(node, mod[0]);
+
+      ib_list.remove_pair(i, mod[0]);
+      ib_list.insert_pair(new_isbn, mod[0]);
+    } else {
+      error("modify: repeated ISBN\n");
+    }
+  }
+
+  void modify_book(const ISBN &isbn, BookName &name) {
+    auto mod = ib_list.get_data(isbn);
+
+    if (mod.size() == 1) {
+      Book node;
+      read_main(node, mod[0]);
 
       BookName n = node.name;
-      node.name=name;
-      write_main(node, (*mod).second);
+      node.name = name;
+      write_main(node, mod[0]);
 
-      remove_from_bn(n, mod->second);
-      bn.insert({name, mod->second});
+      bn_list.remove_pair(n, mod[0]);
+      bn_list.insert_pair(name, mod[0]);
     } else {
       error("not found book to modify\n");
     }
   }
 
-  void modify_book(const ISBN &isbn, const Author &author) {
-    auto mod = list.find(isbn);
+  void modify_book(const ISBN &isbn, Author &author) {
+    auto mod = ib_list.get_data(isbn);
 
-    if (mod!=list.end()) {
+    if (mod.size() == 1) {
       Book node;
-      read_main(node, (*mod).second);
+      read_main(node, mod[0]);
 
-      Author n = node.author;
-      node.author=author;
-      write_main(node, (*mod).second);
+      Author a = node.author;
+      node.author = author;
+      write_main(node, mod[0]);
 
-      remove_from_au(n, mod->second);
-      au.insert({author, mod->second});
+      au_list.remove_pair(a, mod[0]);
+      au_list.insert_pair(author, mod[0]);
     } else {
       error("not found book to modify\n");
     }
   }
 
   void modify_book(const ISBN &isbn, const KeyWord &key_word) {
-    auto mod = list.find(isbn);
+    auto mod = ib_list.get_data(isbn);
 
-    if (mod!=list.end()) {
+    if (mod.size() == 1) {
       Book node;
-      read_main(node, (*mod).second);
+      read_main(node, mod[0]);
 
       KeyWord k = node.key_word;
-      node.key_word=key_word;
-      write_main(node, (*mod).second);
+      node.key_word = key_word;
+      write_main(node, mod[0]);
 
-      remove_from_kw(k, (*mod).second);
-      insert_key_word(key_word.id, (*mod).second);
+      remove_from_kw(k, mod[0]);
+      insert_key_word(key_word.id, mod[0]);
     } else {
       error("not found book to modify\n");
     }
   }
 
   void modify_book(const ISBN &isbn, double price) {
-    auto mod = list.find(isbn);
+    auto mod = ib_list.get_data(isbn);
 
-    if (mod!=list.end()) {
+    if (mod.size() == 1) {
       Book node;
-      read_main(node, (*mod).second);
-      node.price=price;
-      write_main(node, (*mod).second);
+      read_main(node, mod[0]);
+      node.price = price;
+      write_main(node, mod[0]);
     } else {
       error("not found book to modify\n");
+    }
+  }
+
+  void import_book(const ISBN &isbn, int quantity) {
+    auto mod = ib_list.get_data(isbn);
+    if (mod.size() == 1) {
+      Book node;
+      read_main(node, mod[0]);
+      node.storage += quantity;
+      write_main(node, mod[0]);
+    } else {
+      error("not found book to import\n");
+    }
+  }
+
+  double buy_book(const ISBN &isbn, int quantity) {
+    auto mod = ib_list.get_data(isbn);
+    if (mod.size() == 1) {
+      Book node;
+      read_main(node, mod[0]);
+      if (node.storage < quantity) {
+        error("buy book: not enough storage\n");
+        return -1;
+      }
+      node.storage -= quantity;
+      write_main(node, mod[0]);
+      return quantity * node.price;
+    } else {
+      error("not found book to buy\n");
+      return -1;
     }
   }
 

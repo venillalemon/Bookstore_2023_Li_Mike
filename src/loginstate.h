@@ -114,8 +114,8 @@ void select(const ISBN &isbn) {
   }
   login_list.back().second = isbn;
   //cout << tmp.first.id << " selects " << tmp.second.id << '\n';
-  auto it = bs.list.find(isbn);
-  if (it == bs.list.end()) {
+  auto it = bs.bookinfo(isbn);
+  if (it.isbn != isbn) {
     bs.insert_book(Book(isbn));
   }
 }
@@ -124,13 +124,10 @@ void import(int quantity, double tot_cost) {
   if (curPrivilege() < 3) error("import: low privilege\n");
   if (quantity <= 0) error("import: invalid quantity\n");
   if (tot_cost <= 0) error("import: invalid cost\n");
-  auto it = bs.list.find(curBook().isbn);
-  // throw an error when no book is selected
 
-  Book tmp;
-  bs.read_main(tmp, (*it).second);
-  tmp.storage += quantity;
-  bs.write_main(tmp, (*it).second);
+
+  bs.import_book(curBook().isbn, quantity);
+  // throw an error when no book is selected
 
   FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, tot_cost / quantity, IMPORT};
   fs.add_his(fh);
@@ -139,48 +136,32 @@ void import(int quantity, double tot_cost) {
 void buy(const ISBN &isbn, int quantity) {
   if (curPrivilege() < 1) error("buy: low privilege\n");
   if (quantity <= 0) error("buy: invalid quantity\n");
-  auto it = bs.list.find(isbn);
-  if(it==bs.list.end()) error("buy: book not found\n");
-  Book tmp;
-  bs.read_main(tmp, (*it).second);
-  if (tmp.storage < quantity) error("buy: not enough storage\n");
-  tmp.storage -= quantity;
-  bs.write_main(tmp, (*it).second);
+
+  double tot_p=bs.buy_book(isbn,quantity);
 
   ID id = curUser().user_id;
-  double p = bs.bookinfo(isbn).price;
-  FinanceHistory fh{id, isbn, quantity, p, SALE};
+  FinanceHistory fh{id, isbn, quantity, tot_p/quantity, SALE};
   fs.add_his(fh);
-  cout << std::fixed << std::setprecision(2) << p * quantity << '\n';
+  cout << std::fixed << std::setprecision(2) << tot_p << '\n';
   cout << std::defaultfloat;
 }
 
-void modify_book(const ISBN &isbn) {
+void modify_book(ISBN &isbn) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   ISBN del_isbn = curBook().isbn;// can throw "no book selected"
   if (del_isbn == isbn) { error("modify book: ISBN remains the same\n"); }
-  if(bs.list.find(isbn)!=bs.list.end()) error("modify book: ISBN already exists\n");
-
-  auto it=bs.list.find(del_isbn);
-  if(it==bs.list.end()) error("modify book: book not found\n");
-  int pos=it->second;
-  bs.list.erase(it);
-  bs.list.insert(pair<ISBN, int>(isbn, pos));
-  Book sel ;
-  bs.read_main(sel, (*it).second);
-  sel.isbn = isbn;
-  bs.write_main(sel, (*it).second);
+  bs.modify_book(del_isbn, isbn);
   for (auto &i: login_list) {
     if (i.second == del_isbn) i.second = isbn;
   }
 }
 
-void modify_book(const Author &author) {
+void modify_book(Author &author) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, author);
 }
 
-void modify_book(const BookName &book_name) {
+void modify_book(BookName &book_name) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, book_name);
 }
