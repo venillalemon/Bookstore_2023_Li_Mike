@@ -310,7 +310,7 @@ void parse_Command(const string &input) {
       //cout << command << " " << value << "\n";
       if (command == "ISBN") {
         if (isbn != ISBN{}) error("modify: repeated ISBN\n");
-        if(value.size()>20)error("modify: ISBN too long\n");
+        if (value.size() > 20)error("modify: ISBN too long\n");
         isbn = ISBN(value.c_str());
       } else if (command == "name") {
         if (book_name != BookName{}) error("modify: repeated name\n");
@@ -339,6 +339,7 @@ void parse_Command(const string &input) {
       } else if (command == "price") {
         if (std::stod(value) < 0) error("modify: wrong price\n");
         if (price != -1) error("modify: repeated price\n");
+        if (value == ".") error("modify: wrong price\n");
         price = std::stod(value);
       }
       ss >> op;
