@@ -22,7 +22,7 @@ void parse_Command(const string &input) {
 
   smatch match;
   if (regex_search(input, match, inc_regex)) {
-    error("Invalid: invisible har\n");
+    //error("Invalid: invisible char\n");
   }
 
   stringstream ss(input);
@@ -278,16 +278,12 @@ void parse_Command(const string &input) {
         }
         if (command[1] == 'I') {
           find_book(ISBN(command.substr(6).c_str()));
-          //cout << "show_ISBN " << isbn << '\n';
         } else if (command[1] == 'n') {
           find_book(BookName(command.substr(7, command.size() - 8).c_str()));
-          //cout << "show_name " << book_name << '\n';
         } else if (command[1] == 'a') {
           find_book(Author(command.substr(9, command.size() - 10).c_str()));
-          //cout << "show_author " << auth << '\n';
         } else if (command[1] == 'k') {
           find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
-          //cout << "show_keyword " << key_word << '\n';
         }
         return;
       }
