@@ -15,7 +15,7 @@ typedef m_string<100> Command;
 
 void parse_Command(const string &input) {
 
-  regex inc_regex(R"([\v\r\t])");
+  regex inc_regex(R"([\x00-\x19])");
   regex ID_regex(R"(\w+)");//for userid, password
   regex name_regex(R"(\S+)");//for username, book name, author, keyword
   regex show_regex(R"(-ISBN=[\x21-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+")");
