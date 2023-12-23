@@ -22,7 +22,7 @@ void parse_Command(const string &input) {
 
   smatch match;
   if (regex_search(input, match, inc_regex)) {
-    //error("Invalid: invisible char\n");
+    error("Invalid: invisible char\n");
   }
 
   stringstream ss(input);
