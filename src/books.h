@@ -123,10 +123,10 @@ public:
   //read from aux
   int book_num = 0;
 
-  BlockList<ISBN, 500> ib_list;
-  BlockList<BookName, 500> bn_list;
-  BlockList<Author, 500> au_list;
-  BlockList<KeyWord, 1000> kw_list;
+  BlockList<ISBN, 50> ib_list;
+  BlockList<BookName, 50> bn_list;
+  BlockList<Author, 50> au_list;
+  BlockList<KeyWord, 100> kw_list;
 
   explicit BookSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
