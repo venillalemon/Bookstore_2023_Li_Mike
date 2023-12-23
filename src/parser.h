@@ -276,6 +276,8 @@ void parse_Command(const string &input) {
           error("Invalid: wrong command\n");
           return;
         }
+        ss >> op;
+        if (!ss.fail())error("exceeded token\n");
         if (command[1] == 'I') {
           if (command.substr(6).size() > 20)error("modify: ISBN too long\n");
           find_book(ISBN(command.substr(6).c_str()));
