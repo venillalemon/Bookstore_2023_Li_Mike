@@ -53,6 +53,8 @@ int main() {
 
     } catch (ErrorException &ex) {
       std::cout << "Invalid\n";
+    } catch (std::exception &ex) {
+      std::cout << "Invalid\n";
     }
   }
   as.write_aux();

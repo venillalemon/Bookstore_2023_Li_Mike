@@ -25,7 +25,6 @@ using std::unordered_map;
 using std::map;
 using std::multimap;
 using std::pair;
-using std::unordered_multimap;
 
 template<int length>
 class m_string {
@@ -56,15 +55,6 @@ public:
     return (strcmp(id, rhs.id) < 0);
   }
 };
-
-namespace std {
-    template<int length>
-    struct hash<m_string<length>> {
-      size_t operator()(const m_string<length> &x) const {
-        return hash<string>()(x.id);
-      }
-    };
-}
 
 template<int length>
 ostream &operator<<(ostream &os, const m_string<length> m) {
