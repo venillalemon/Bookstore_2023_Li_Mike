@@ -310,24 +310,31 @@ void parse_Command(const string &input) {
       //cout << command << " " << value << "\n";
       if (command == "ISBN") {
         if (isbn != ISBN{}) error("modify: repeated ISBN\n");
+        if(value.size()>20)error("modify: ISBN too long\n");
         isbn = ISBN(value.c_str());
       } else if (command == "name") {
         if (book_name != BookName{}) error("modify: repeated name\n");
         if (value.size() <= 2) error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
+        if (value.size() > 60)error("modify: name too long\n");
+        if (value.find('"') != string::npos)error("modify: wrong command\n");
         book_name = BookName(value.c_str());
       } else if (command == "author") {
         if (auth != Author{}) error("modify: repeated author\n");
         if (value.size() <= 2) error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
+        if (value.size() > 60)error("modify: name too long\n");
+        if (value.find('"') != string::npos)error("modify: wrong command\n");
         auth = Author(value.c_str());
       } else if (command == "keyword") {
         if (key_word != KeyWord{}) error("modify: repeated keyword\n");
         if (value.size() <= 2)error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
+        if (value.size() > 60)error("modify: name too long\n");
+        if (value.find('"') != string::npos)error("modify: wrong command\n");
         key_word = KeyWord(value.c_str());
       } else if (command == "price") {
         if (std::stod(value) < 0) error("modify: wrong price\n");
