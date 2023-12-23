@@ -15,6 +15,7 @@ vector<pair<ID, ISBN>> login_list;
 int main() {
   while (true) {
     try {
+      if(cin.eof()) break;
       std::string input;
       getline(cin, input);
       if (input.empty()) break;
