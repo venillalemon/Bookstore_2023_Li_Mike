@@ -85,7 +85,7 @@ public:
   Author author{};
   KeyWord key_word{};
   double price = 0;
-  int storage = 0
+  int storage = 0;
 public:
   Book() = default;
 
