@@ -277,12 +277,16 @@ void parse_Command(const string &input) {
           return;
         }
         if (command[1] == 'I') {
+          if (command.substr(6).size() > 20)error("modify: ISBN too long\n");
           find_book(ISBN(command.substr(6).c_str()));
         } else if (command[1] == 'n') {
+          if (command.substr(7, command.size() - 8).size() > 60)error("modify: name too long\n");
           find_book(BookName(command.substr(7, command.size() - 8).c_str()));
         } else if (command[1] == 'a') {
+          if (command.substr(9, command.size() - 10).size() > 60)error("modify: name too long\n");
           find_book(Author(command.substr(9, command.size() - 10).c_str()));
         } else if (command[1] == 'k') {
+          if (command.substr(10, command.size() - 11).size() > 60)error("modify: name too long\n");
           find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
         }
         return;
