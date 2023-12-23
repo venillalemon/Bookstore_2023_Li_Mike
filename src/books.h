@@ -85,8 +85,7 @@ public:
   Author author{};
   KeyWord key_word{};
   double price = 0;
-  int storage = 0;
-  bool exist = true;
+  int storage = 0
 public:
   Book() = default;
 
@@ -124,10 +123,10 @@ public:
   //read from aux
   int book_num = 0;
 
-  BlockList<ISBN, 250> ib_list;
-  BlockList<BookName, 250> bn_list;
-  BlockList<Author, 250> au_list;
-  BlockList<KeyWord, 500> kw_list;
+  BlockList<ISBN, 500> ib_list;
+  BlockList<BookName, 500> bn_list;
+  BlockList<Author, 500> au_list;
+  BlockList<KeyWord, 1000> kw_list;
 
   explicit BookSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
