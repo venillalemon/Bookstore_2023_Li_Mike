@@ -292,7 +292,7 @@ void parse_Command(const string &input) {
         return;
       }
     }
-  } else if(op=="modify"){
+  } else if (op == "modify") {
     ISBN isbn{};
     BookName book_name{};
     Author auth{};
@@ -309,23 +309,29 @@ void parse_Command(const string &input) {
       string value = match.str(2);
       //cout << command << " " << value << "\n";
       if (command == "ISBN") {
+        if (isbn != ISBN{}) error("modify: repeated ISBN\n");
         isbn = ISBN(value.c_str());
       } else if (command == "name") {
-        if (value.size() <= 2)error("modify: wrong command\n");
+        if (book_name != BookName{}) error("modify: repeated name\n");
+        if (value.size() <= 2) error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
         book_name = BookName(value.c_str());
       } else if (command == "author") {
-        if (value.size() <= 2)error("modify: wrong command\n");
+        if (auth != Author{}) error("modify: repeated author\n");
+        if (value.size() <= 2) error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
         auth = Author(value.c_str());
       } else if (command == "keyword") {
+        if (key_word != KeyWord{}) error("modify: repeated keyword\n");
         if (value.size() <= 2)error("modify: wrong command\n");
         if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
         key_word = KeyWord(value.c_str());
       } else if (command == "price") {
+        if (std::stod(value) < 0) error("modify: wrong price\n");
+        if (price != -1) error("modify: repeated price\n");
         price = std::stod(value);
       }
       ss >> op;
