@@ -4,7 +4,6 @@
 #include<cstring>
 #include<iostream>
 #include<fstream>
-#include"books.h"
 
 typedef m_string<500> Log;
 
