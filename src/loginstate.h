@@ -73,7 +73,9 @@ void login(const ID &id, const char password[35] = nullptr) {
       login_list.push_back(m);
     } else error("wrong password\n");
   } else {
-
+    if(password!= nullptr){
+      if(strcmp(i.password, password) != 0) error("wrong password\n");
+    }
     if (!(i.user_id == id)) {
       error("login: account not found to log in\n");
     }
