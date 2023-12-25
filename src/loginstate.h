@@ -101,6 +101,9 @@ void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] =
   }
 
   if (curUser().privilege == 7) {
+    if(_password!= nullptr) {
+      if(strcmp(_password, tmp.password) != 0) error("passwd: wrong password\n");
+    }
     as.resetpasswd(id, _new_p);
   } else {
     if (strcmp(tmp.password, _password) == 0) {
