@@ -11,8 +11,7 @@ using std::regex_match;
 using std::smatch;
 using std::stringstream;
 
-typedef m_string<100> Command;
-
+//parse the command
 void parse_Command(const string &input) {
 
   regex inc_regex(R"([\x00-\x19])");

@@ -26,8 +26,8 @@ class FinanceSys {
 public:
   string main_name{};
   fstream file_main, file_aux, file_his;
-  int count = 0;// in main
-  vector<pair<double, double>> v;// in aux, sale/cost
+  int count = 0;// stored in main
+  vector<pair<double, double>> v;// stored in aux, sale/cost
 
   explicit FinanceSys(const string &FN = "") {
     if (!FN.empty()) main_name = FN;
@@ -96,9 +96,6 @@ public:
   }
 
   void add_his(FinanceHistory &FH) {
-    file_main.open(main_name, std::ofstream::app);
-    file_main.write(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
-    file_main.close();
     ++count;
     pair<double, double> last{};
     if (!v.empty()) last = v.back();

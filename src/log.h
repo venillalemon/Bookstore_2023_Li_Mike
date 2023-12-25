@@ -38,6 +38,7 @@ public:
     file_main.close();
   }
 
+  // write an employee log to the end of the file
   void write_employee(Log &l) {
     file_aux.open(main_name + "_employee", fstream::app);
     file_aux.write(reinterpret_cast<char *> (&l), sizeof(Log));

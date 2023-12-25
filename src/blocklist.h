@@ -16,6 +16,9 @@ using std::string;
 using std::vector;
 using std::pair;
 
+// encapsulated blocklist template
+// in the template, T is the type of the key, and block is the size of the block
+// key can repeat, but the pair of key and pos (i.e., K) has to be unique
 // T should include K
 template<class T, int block> // K-ordered
 class BlockList {

@@ -113,6 +113,7 @@ public:
   //read from aux
   int book_num = 0;
 
+  //using block list to store map from key to position in file 'book'
   BlockList<ISBN, 50> ib_list;
   BlockList<BookName, 50> bn_list;
   BlockList<Author, 50> au_list;
