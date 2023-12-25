@@ -10,6 +10,7 @@ using std::ifstream;
 AccountSys as("account");
 BookSys bs("book");
 FinanceSys fs("finance");
+LogSys ls("log");
 vector<pair<ID, ISBN>> login_list;
 
 int main() {

@@ -6,11 +6,13 @@
 #include "books.h"
 #include "finance.h"
 #include "error.h"
+#include "log.h"
 
 
 extern AccountSys as;
 extern BookSys bs;
 extern FinanceSys fs;
+extern LogSys ls;
 extern vector<pair<ID, ISBN>> login_list;
 
 //get the current user
@@ -48,6 +50,10 @@ void print() {
 
 void reg(const ID &id, const char password[35], const char username[35]) {
   as.insert_account(Account(id, password, username, 1));
+  char log[500]="";
+  strcat(log, id.id);
+  strcat(log, " registered");
+  ls.write_log((Log &) (log));
 }
 
 void useradd(const ID &id, const char password[35], const char username[35], int privilege) {
@@ -55,6 +61,15 @@ void useradd(const ID &id, const char password[35], const char username[35], int
     error("useradd: low privilege\n");
   }
   as.insert_account(Account(id, password, username, privilege));
+
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " adds ");
+  strcat(log, id.id);
+  strcat(log, " with privilege ");
+  strcat(log, std::to_string(privilege).c_str());
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void login(const ID &id, const char password[35] = nullptr) {
@@ -99,15 +114,23 @@ void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] =
   if (!(tmp.user_id == id)) {
     error("passwd: account does not exist\n");
   }
-
+  char log[500]="";
   if (curUser().privilege == 7) {
     if(_password!= nullptr) {
       if(strcmp(_password, tmp.password) != 0) error("passwd: wrong password\n");
     }
     as.resetpasswd(id, _new_p);
+    strcat(log, curUser().user_id.id);
+    strcat(log, " resets the password of ");
+    strcat(log, id.id);
+    ls.write_log((Log &) (log));
   } else {
     if (strcmp(tmp.password, _password) == 0) {
       as.resetpasswd(id, _new_p);
+      strcat(log, curUser().user_id.id);
+      strcat(log, " resets the password of ");
+      strcat(log, id.id);
+      ls.write_log((Log &) (log));
     } else {
       error("passwd: wrong password\n");
     }
@@ -125,6 +148,12 @@ void select(const ISBN &isbn) {
   if (it.isbn != isbn) {
     bs.insert_book(Book(isbn));
   }
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " selects ");
+  strcat(log, isbn.id);
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void import(int quantity, double tot_cost) {
@@ -138,6 +167,17 @@ void import(int quantity, double tot_cost) {
 
   FinanceHistory fh{curUser().user_id, curBook().isbn, quantity, tot_cost / quantity, IMPORT};
   fs.add_his(fh);
+
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " imports ");
+  strcat(log, std::to_string(quantity).c_str());
+  strcat(log, " ");
+  strcat(log, curBook().isbn.id);
+  strcat(log, " for total cost ");
+  strcat(log, std::to_string(tot_cost).c_str());
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void buy(const ISBN &isbn, int quantity) {
@@ -151,6 +191,16 @@ void buy(const ISBN &isbn, int quantity) {
   fs.add_his(fh);
   cout << std::fixed << std::setprecision(2) << tot_p << '\n';
   cout << std::defaultfloat;
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " buys ");
+  strcat(log, std::to_string(quantity).c_str());
+  strcat(log, " ");
+  strcat(log, isbn.id);
+  strcat(log, " for ");
+  strcat(log, std::to_string(tot_p/quantity).c_str());
+  strcat(log, " each");
+  ls.write_log((Log &) log);
 }
 
 void modify_book(ISBN &isbn) {
@@ -161,26 +211,71 @@ void modify_book(ISBN &isbn) {
   for (auto &i: login_list) {
     if (i.second == del_isbn) i.second = isbn;
   }
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " modifies the ISBN of ");
+  strcat(log, del_isbn.id);
+  strcat(log, " to ");
+  strcat(log, isbn.id);
+
+  strcat(log, " ");
+  ls.write_log((Log &) (log));
 }
 
 void modify_book(Author &author) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, author);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " modifies the author of ");
+  strcat(log, curBook().isbn.id);
+  strcat(log, " to ");
+  strcat(log, author.id);
+  strcat(log, " ");
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void modify_book(BookName &book_name) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, book_name);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " modifies the name of ");
+  strcat(log, curBook().isbn.id);
+  strcat(log, " to ");
+  strcat(log, book_name.id);
+  strcat(log, " ");
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void modify_book(double price_) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, price_);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " modifies the price of ");
+  strcat(log, curBook().isbn.id);
+  strcat(log, " to ");
+  strcat(log, std::to_string(price_).c_str());
+  strcat(log," ");
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void modify_book(const KeyWord &key_word_) {
   if (curPrivilege() < 3) error("modify book: low privilege\n");
   bs.modify_book(curBook().isbn, key_word_);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " modifies the keyword of ");
+  strcat(log, curBook().isbn.id);
+  strcat(log, " to ");
+  strcat(log, key_word_.id);
+  strcat(log, " ");
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void delete_account(const ID &id) {
@@ -191,26 +286,52 @@ void delete_account(const ID &id) {
     }
   }
   as.remove_account(id);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " deletes the user ");
+  strcat(log, id.id);
+  ls.write_log((Log &) (log));
+  ls.write_employee((Log &) (log));
 }
 
 void find_book(const ISBN &isbn) {
   if (curPrivilege() < 1) error("show: low privilege\n");
   bs.find_book(isbn);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " shows -ISBN=");
+  strcat(log, isbn.id);
+  ls.write_log((Log &) (log));
 }
 
 void find_book(const BookName &isbn) {
   if (curPrivilege() < 1) error("show: low privilege\n");
   bs.find_book(isbn);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " shows -name=");
+  strcat(log, isbn.id);
+  ls.write_log((Log &) (log));
 }
 
 void find_book(const Author &isbn) {
   if (curPrivilege() < 1) error("show: low privilege\n");
   bs.find_book(isbn);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " shows -author=");
+  strcat(log, isbn.id);
+  ls.write_log((Log &) (log));
 }
 
 void find_book(const KeyWord &isbn) {
   if (curPrivilege() < 1) error("show: low privilege\n");
   bs.find_book(isbn);
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " shows -keyword=");
+  strcat(log, isbn.id);
+  ls.write_log((Log &) (log));
 }
 
 void show_finance(int count = -1) {
@@ -223,6 +344,24 @@ void show_finance(int count = -1) {
   } else ans = fs.get_finance(count);
   cout << std::fixed << std::setprecision(2) << "+ " << ans.first << " - " << ans.second << '\n';
   cout << std::defaultfloat;
+}
+
+void show_all(){
+  bs.show();
+  char log[500]="";
+  strcat(log, curUser().user_id.id);
+  strcat(log, " shows all the books");
+  ls.write_log((Log &) (log));
+}
+
+void show_log(){
+  if(curPrivilege() < 7) error("show log: low privilege\n");
+  ls.show();
+}
+
+void report_employee(){
+  if(curPrivilege() < 7) error("report employee: low privilege\n");
+  ls.show_employee();
 }
 
 #endif

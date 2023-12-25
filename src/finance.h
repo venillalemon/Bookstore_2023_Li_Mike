@@ -145,6 +145,7 @@ public:
       else if (FH.type == IMPORT) cout << "IMPORT\n";
       file_his.read(reinterpret_cast<char *>(&FH), sizeof(FinanceHistory));
     }
+    file_his.close();
   }
 
 };

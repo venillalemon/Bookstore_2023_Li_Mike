@@ -43,7 +43,7 @@ void parse_Command(const string &input) {
   } else if (op == "log") {
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
-    //log();
+    show_log();
     return;
   } else if (op == "report") {
     ss >> op;
@@ -58,8 +58,7 @@ void parse_Command(const string &input) {
     } else if (op == "employee") {
       ss >> op;
       if (!ss.fail()) error("exceeded token\n");
-      //as.print();
-      //cout << "employee\n";
+      report_employee();
       return;
     }
   } else if (op == "delete") {
@@ -76,6 +75,7 @@ void parse_Command(const string &input) {
     ID id(op.c_str());
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
+
     delete_account(id);
     return;
   } else if (op == "select") {
@@ -92,6 +92,7 @@ void parse_Command(const string &input) {
     ISBN isbn(op.c_str());
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
+
     select(ISBN(isbn));
     //cout << isbn << '\n';
     return;
@@ -129,6 +130,7 @@ void parse_Command(const string &input) {
     if (std::stod(amount) != a) error("import: invalid quantity\n");
     if (cost == ".") error("import: invalid cost\n");
     // can throw a std::invalid_argument if amount="4.5"
+
     import(a, c);
     return;
   } else if (op == "su") {
@@ -294,7 +296,7 @@ void parse_Command(const string &input) {
   } else if (op == "show") {
     ss >> op;
     if (ss.fail()) {
-      bs.show();
+      show_all();
       return;
     } else {
       if (op == "finance") {

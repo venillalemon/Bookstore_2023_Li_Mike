@@ -16,4 +16,5 @@ add_executable(code
         src/error.h
         src/parser.h
         src/blocklist.h
+        src/log.h
 )
