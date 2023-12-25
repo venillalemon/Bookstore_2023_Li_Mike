@@ -58,11 +58,12 @@ void useradd(const ID &id, const char password[35], const char username[35], int
 }
 
 void login(const ID &id, const char password[35] = nullptr) {
-  if (curPrivilege() != 7) {
+  Account i = as.user(id);
+  if (curPrivilege() <= i.privilege) {
     if (password == nullptr) {
       error("login: require password\n");
     }
-    Account i = as.user(id);
+
     if (!(i.user_id == id)) {
       error("login: account not found to log in\n");
     }
@@ -72,7 +73,7 @@ void login(const ID &id, const char password[35] = nullptr) {
       login_list.push_back(m);
     } else error("wrong password\n");
   } else {
-    Account i = as.user(id);
+
     if (!(i.user_id == id)) {
       error("login: account not found to log in\n");
     }
@@ -91,6 +92,7 @@ pair<ID, ISBN> logout() {
 }
 
 void resetpasswd(const ID &id, const char _new_p[35], const char _password[35] = nullptr) {
+  if(curPrivilege() < 1) error("resetpasswd: low privilege\n");
   Account tmp = as.user(id);
   if (!(tmp.user_id == id)) {
     error("passwd: account does not exist\n");

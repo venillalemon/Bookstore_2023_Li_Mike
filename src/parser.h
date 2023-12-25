@@ -18,7 +18,7 @@ void parse_Command(const string &input) {
   regex inc_regex(R"([\x00-\x19])");
   regex ID_regex(R"(\w+)");//for userid, password
   regex name_regex(R"(\S+)");//for username, book name, author, keyword
-  regex show_regex(R"(-ISBN=[\x21-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"\s]+")");
+  regex show_regex(R"(-ISBN=[\x21-\x7E]+|-name="[^"\s]+"|-author="[^"\s]+"|-keyword="[^"|\s]+")");
 
   smatch match;
   if (regex_search(input, match, inc_regex)) {
@@ -127,6 +127,7 @@ void parse_Command(const string &input) {
     int a = std::stoi(amount);
     double c = std::stod(cost);
     if (std::stod(amount) != a) error("import: invalid quantity\n");
+    if (cost == ".") error("import: invalid cost\n");
     // can throw a std::invalid_argument if amount="4.5"
     import(a, c);
     return;
@@ -316,7 +317,7 @@ void parse_Command(const string &input) {
           return;
         }
         ss >> op;
-        if (!ss.fail())error("exceeded token\n");
+        if (!ss.fail()) error("exceeded token\n");
         if (command[1] == 'I') {
           if (command.substr(6).size() > 20)error("modify: ISBN too long\n");
           find_book(ISBN(command.substr(6).c_str()));
