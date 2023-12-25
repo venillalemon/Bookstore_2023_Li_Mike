@@ -111,6 +111,7 @@ public:
   }
 
   pair<double, double> get_finance() {
+    if(v.empty()) return {0, 0};
     return v.back();
   }
 
