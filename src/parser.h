@@ -110,7 +110,7 @@ void parse_Command(const string &input) {
     string amount;
     ss >> amount;
     if (ss.fail()) error("not enough token\n");
-    if(amount.size()>10) error("buy: exceed length\n");
+    if (amount.size() > 10) error("buy: exceed length\n");
     ss >> op;
     if (!ss.fail()) error("exceeded token\n");
     if (std::stod(amount) != std::stoi(amount)) error("buy: invalid quantity\n");
@@ -328,6 +328,8 @@ void parse_Command(const string &input) {
           find_book(Author(command.substr(9, command.size() - 10).c_str()));
         } else if (command[1] == 'k') {
           if (command.substr(10, command.size() - 11).size() > 60)error("modify: name too long\n");
+          string k = command.substr(10, command.size() - 11);
+          if (k.find('|') != string::npos) error("modify: wrong command\n");
           find_book(KeyWord(command.substr(10, command.size() - 11).c_str()));
         }
         return;
@@ -371,11 +373,14 @@ void parse_Command(const string &input) {
         auth = Author(value.c_str());
       } else if (command == "keyword") {
         if (key_word != KeyWord{}) error("modify: repeated keyword\n");
-        if (value.size() <= 2)error("modify: wrong command\n");
-        if (value[0] != '"' || value[value.size() - 1] != '"')error("modify: wrong command\n");
+        if (value.size() <= 2) error("modify: wrong command\n");
+        if (value[0] != '"' || value[value.size() - 1] != '"') error("modify: wrong command\n");
         value = value.substr(1, value.size() - 2);
-        if (value.size() > 60)error("modify: name too long\n");
-        if (value.find('"') != string::npos)error("modify: wrong command\n");
+        if (value.size() > 60) error("modify: name too long\n");
+        if (value.find('"') != string::npos) error("modify: wrong command\n");
+        if (value.find("||") != string::npos) error("modify: wrong command\n");
+        if (value[0] == '|' || value[value.size() - 1] == '|') error("modify: wrong command\n");
+        //no empty keyword
         key_word = KeyWord(value.c_str());
       } else if (command == "price") {
         if (std::stod(value) < 0) error("modify: wrong price\n");
